@@ -6,7 +6,7 @@ paper.
 
 | Subdirectory | Paper / topic |
 |---|---|
-| [`3pt-construction/`](3pt-construction/) | *An anharmonic liquid-entropy functional from the Mori–Zwanzig memory kernel* — data, figure/table scripts, and control-file templates for the Three-Phase Explicit Anharmonic Thermodynamics (3PT) method. |
+| [`3pt-construction/`](3pt-construction/) | *An anharmonic liquid-entropy functional from the Mori–Zwanzig memory kernel* — data, figure/table scripts, and control-file templates for the Three-Phase Explicit Anharmonic Thermodynamics (3PT) method (Zenodo [10.5281/zenodo.21447740](https://doi.org/10.5281/zenodo.21447740)). |
 | [`solvation-spectra/`](solvation-spectra/) | *Practical Corrections for Finite-Concentration Molecular Dynamics Simulations* — inputs and analysis scripts (Zenodo [10.5281/zenodo.15377288](https://doi.org/10.5281/zenodo.15377288)). |
 | [`na-orion-conductor/`](na-orion-conductor/) | *Tailoring Energy Landscapes for Vehicular Transport in Single-Ion Conducting Organo Ionic Solids* — molecular-dynamics data. |
 | [`copper-electrodeposition-data/`](copper-electrodeposition-data/) | *Direct Spectroscopic Evidence of an Atom-Transfer Mechanism during Copper Electrodeposition on Gold* — computational data (XAS spectra on Zenodo [10.5281/zenodo.17657023](https://doi.org/10.5281/zenodo.17657023)). |

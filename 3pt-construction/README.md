@@ -5,6 +5,8 @@ Data, post-processing scripts, and run templates for:
 **"An anharmonic liquid-entropy functional from the Mori–Zwanzig memory kernel"**
 (Three-Phase Explicit Anharmonic Thermodynamics, 3PT).
 
+**Archived on Zenodo:** https://doi.org/10.5281/zenodo.21447740
+
 The 2PT/3PT entropy code itself (py-xPT) lives in a separate repository:
 <https://github.com/atlas-nano/codes/tree/main/py-xPT>. The `.ini` control files in
 `pyxpt_control/` are run with that code.
