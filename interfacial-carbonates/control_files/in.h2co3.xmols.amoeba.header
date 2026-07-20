@@ -1,0 +1,32 @@
+units                real
+atom_style           amoeba
+boundary             p p p
+atom_modify          sort 0 0.0
+dielectric           1
+special_bonds        lj/coul 0.5 0.5 0.5 one/five yes
+                     
+pair_style           amoeba
+bond_style           class2
+angle_style          amoeba
+dihedral_style       fourier
+improper_style       amoeba
+kspace_style         none
+                     
+#                    per-atom properties required by AMOEBA or HIPPO
+fix                  amtype all property/atom i_amtype ghost yes
+fix                  extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix                  extra2 all property/atom i_polaxe d2_xyzaxis 3
+                     
+read_data            ${data_file} fix amtype NULL "Tinker Types"
+                     
+pair_coeff           * * ${ff_file} ${key_file}
+                     
+pair_modify          mix geometric
+neighbor             2.0 multi
+neigh_modify         every 2 delay 4 check yes
+thermo_style         multi
+thermo_modify        line multi format float %14.6f flush yes
+
+group                solv type 1 2
+
+run                  0

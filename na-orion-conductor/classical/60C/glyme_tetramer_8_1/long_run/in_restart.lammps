@@ -1,0 +1,39 @@
+units                real
+atom_style           full
+boundary             p p p
+dielectric           1
+special_bonds        lj/coul 0.0 0.0 0.8
+                     
+pair_style           lj/charmm/coul/long/opt 9 10
+bond_style           harmonic
+angle_style          harmonic
+dihedral_style       fourier
+improper_style       none
+kspace_style         pppm 1e-05
+                     
+read_restart         /expanse/lustre/projects/csd799/xiruan/2025/na_conductor/tetramer_glymes/60C/glyme_tetramer_8_1/restart/lammps.prod.15000000.restart
+pair_modify          mix arithmetic
+neighbor             2.0 multi
+neigh_modify         every 1 delay 0 check yes
+thermo_style         multi
+thermo_modify        line multi format float %14.6f flush yes
+variable             input string in.lammps
+variable             sname string lammps             
+
+timestep             1                     
+thermo               100                     
+
+reset_timestep       0
+print                .
+print                ================================================
+print                "NVT Production Dynamics Run" 
+print                ================================================
+print                .
+                     
+fix                  2 all nvt temp ${rtemp} ${rtemp} 100.0 tloop 10 ploop 10
+dump                 1 all custom 1000 ${sname}.${rtemp}K.prod.lammpstrj id type xu yu zu vx vy vz
+restart              1000000 ${sname}.prod.*.restart
+run                  35000000 # run for 35ns
+unfix                2
+undump               1
+

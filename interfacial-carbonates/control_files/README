@@ -1,0 +1,3 @@
+Header files for the various systems are named: in.xxx.xmols.amoeba.header
+template files for equilibration (in.carbonates.equil.template) and metadynamics (in.carbonates.wt-mw-mtd.template) are also included
+LAMMPS runs involved concatenating header and template files

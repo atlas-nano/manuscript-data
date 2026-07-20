@@ -1,0 +1,11 @@
+@<TRIPOS>MOLECULE
+Na+
+1 0 1 0 0
+SMALL
+USER_CHARGES
+
+@<TRIPOS>ATOM
+      1 Na         -0.4416    2.3318    0.0000 Na+        1 UNL        1.000000
+@<TRIPOS>BOND
+@<TRIPOS>SUBSTRUCTURE
+      1  UNL              1 ****               0 ****  ****

@@ -1,0 +1,45 @@
+units                real
+atom_style           full
+boundary             p p p
+dielectric           1
+special_bonds        lj/coul 0.0 0.0 0.8
+                     
+pair_style           lj/charmm/coul/long/opt 7 8
+bond_style           harmonic
+angle_style          harmonic
+dihedral_style       fourier
+improper_style       none
+kspace_style         pppm 1e-05
+
+
+variable             input string in.lammps
+variable             sname string lammps  
+variable             colin string colvar.lmp                     
+                     
+read_restart         /expanse/lustre/projects/csd799/xiruan/na_conductor/tetramer_glymes/metadynamics/glyme_tetramer_8_1_fix_momentum/classical_fix_momentum/restart/lammps.prod.${restart_id}.restart
+
+pair_modify          mix arithmetic
+neighbor             2.0 multi
+neigh_modify         every 1 delay 0 check yes
+thermo_style         multi
+thermo_modify        line multi format float %14.6f flush yes
+
+reset_timestep       0
+thermo               100
+
+print                .
+print                ================================================
+print                "NVT metadynamics from different start points"
+print                ================================================
+print                .
+
+
+# fix                  shakeH all shake 0.0001 20 500 m 1.0079 a 1                     
+fix                  2 all nvt temp ${rtemp} ${rtemp} 100.0 tloop 10 ploop 10
+fix                  mtd all colvars ${colin} seed 2122 output colvar.out tstat 2
+thermo               100
+restart              1000000 ${sname}.${rtemp}K.mtd.*.restart
+dump                 1 all custom 10000 ${sname}.${rtemp}K.prod.${rep_id}.mtd.lammps id type xu yu zu vx vy vz
+run                  100000000 # run
+unfix                2
+undump               1

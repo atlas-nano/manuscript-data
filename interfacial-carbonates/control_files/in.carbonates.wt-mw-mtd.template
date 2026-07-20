@@ -1,0 +1,28 @@
+variable        sname string "co3"
+variable        rtemp equal 298
+variable        nstep equal 1000000 #number of steps to run for this bead
+
+fix             rec solv momentum 100 linear 0 0 1 #restrict the solvent center of mass
+log             ${sname}.${rtemp}K.${ibead}.wt-mw-mtd.lammps.log
+timestep        1.0
+
+variable        smin equal bound(solv,zmin)
+variable        smax equal bound(solv,zmax)
+
+print           "solv_min: ${smin} solv_max: ${smax}"
+thermo          100
+print           .
+print           ================================================
+print           "NVT dynamics for Free Energy Calc using Well Tempered Multiple Walker Metadynamics"
+print           ================================================
+print           .
+
+fix             2 all nvt temp ${rtemp} ${rtemp} 100.0 tloop 10 ploop 10
+restart         10000 ${sname}.${rtemp}K.${ibead}.wt-mw-mtd.restart ${sname}.${rtemp}K.${ibead}.wt-mw-mtd.restart.bak
+fix             wtmwmtd all colvars ${sname}.${ibead}.wt-mw-mtd.inp seed ${iseed} output ${sname}.${rtemp}K.${ibead}.wt-mw-mtd
+dump            1 all custom 100000 ${sname}.${rtemp}K.wt-mw-mtd.${ibead}.lammps id type xu yu zu vx vy vz
+run             ${nstep}
+unfix           rec
+undump          1
+unfix           wtmwmtd
+unfix           2

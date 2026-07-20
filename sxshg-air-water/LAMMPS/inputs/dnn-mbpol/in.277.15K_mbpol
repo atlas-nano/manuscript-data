@@ -1,0 +1,76 @@
+# guarantee the LAMMPS terminates before running out of time
+timer timeout 47:50:00 every 100
+
+
+
+# bulk water
+variable        T  equal  277.15 #Kelvin
+#variable        P  equal  1.01325 #Bar
+variable        dt  equal  0.0005 #ps
+#variable        nsteps  equal 20000
+variable        nsteps  equal 20000000
+variable        dump_freq equal 1000
+variable        thermo_freq equal 1000
+
+
+
+units           metal 
+boundary        p p p
+atom_style      atomic
+
+neighbor        2.0 bin
+neigh_modify    every 40 delay 0 check no
+
+
+#read_data       100k-nvt.data
+read_data	data.lammps
+
+
+mass            1 15.9994
+mass            2 1.007840
+
+
+
+pair_style      deepmd compressed_mbpol_graph.pb
+pair_coeff      * *
+
+
+
+velocity        all create ${T} 2732 rot yes dist gaussian
+velocity        all zero linear
+velocity        all zero angular
+
+
+
+fix             1 all nvt temp ${T} ${T} 0.5 
+#fix             1 all npt temp ${T} ${T} 0.5 iso ${P} ${P} 1.0
+timestep        ${dt}
+
+
+# thermo_print : make sure to use append
+thermo_style    custom step etotal pe ke enthalpy density lx ly lz vol pxx pyy pzz press
+thermo          ${thermo_freq}
+thermo_modify   flush yes
+fix             thermo_print all print 1000 "$(step) $(time) $(temp) $(etotal) $(pe) $(ke) $(enthalpy) $(density) $(lx) $(ly) $(lz) $(vol) $(pxx) $(pyy) $(pzz) $(press)" append thermo.out screen no title "# step time temp etotal pe ke enthalpy density lx ly lz vol pxx pyy pzz press"
+
+
+# dump : make sure to use append
+dump            1 all custom ${dump_freq} lmp.lammpstrj id type xu yu zu vx vy vz
+dump_modify     1 format line "%d %d %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"
+dump_modify     1 sort id append yes
+restart         10000 restart.1 restart.2
+
+run             ${nsteps} upto
+
+write_restart   restart.new
+write_data      datafile_final nocoeff
+
+
+# write out finished steps
+# these two lines are recognized by the job.sh
+# for automatically resubmitting
+variable        curr_step equal $(step)
+shell           echo ${curr_step} >> JOBFINISHEDSTEPS
+
+
+

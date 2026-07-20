@@ -1,0 +1,3 @@
+The PP directory contains post-processing tool that transforms the output from Siesta VG-RTTDFT run into chi2.
+It will post-process the dipole.vs.time file into ftout.dat which can then be used to obtain response at that energy/intensity pair.
+The Input directory contains input file. The input follows standard siesta format. See input file comment for details.

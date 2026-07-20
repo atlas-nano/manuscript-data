@@ -1,0 +1,69 @@
+colvarsRestartFrequency 10000
+colvarsTrajFrequency	10000
+colvar {
+		name distZ
+		width 0.2 # 0.2A of estimated fluctuation width
+		lowerBoundary -48
+		upperBoundary 48
+		lowerWall     -48
+		upperWall     48
+		lowerWallConstant 50.0
+		upperWallConstant 50.0
+		outputAppliedForce on
+		extendedLagrangian on
+		extendedFluctuation 0.01
+		extendedTemp 298
+		distanceZ {
+				componentCoeff 1
+				axis (0,0,1)
+				ref {
+						atomNumbers 1879
+				}
+				main {
+						dummyAtom (0, 0, 48.1615)
+				}
+		}
+}
+colvar {
+		name coordN
+		width 0.1 # 0.2A of estimated fluctuation width
+		outputAppliedForce on
+		lowerBoundary 0
+		upperBoundary 6
+		extendedLagrangian on
+		extendedFluctuation 0.01
+		extendedTemp 298
+		coordNum {
+				cutoff 8
+				expNumer 6
+				expDenom 12
+				group1 {
+						atomNumbers 1879
+				}
+				group2 {
+						atomNumbers 1883 1887 1891 1895 1899 1903
+				}
+		}
+}
+harmonicWalls {
+		name myWalls
+		colvars distZ
+		lowerWalls -48
+		upperWalls 48
+		forceConstant 100.0
+}
+metadynamics {
+	name wt-mw-mtd
+	colvars distZ coordN
+	hillWidth 1.2533
+	newHillFrequency 1000 #1ps
+    hillWeight 0.3 #2kT
+	writeFreeEnergyFile yes
+	useGrids yes
+	wellTempered on
+	biasTemperature 2980
+	multipleReplicas on
+	replicaID rep1
+	replicasRegistry co3.07mols.amoeba.slab.298K.replica_files.txt
+	replicaUpdateFrequency 10000
+}

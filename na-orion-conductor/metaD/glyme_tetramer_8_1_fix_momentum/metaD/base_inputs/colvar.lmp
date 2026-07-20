@@ -1,0 +1,154 @@
+colvarsRestartFrequency 200000
+# colvarsTrajAppend  off
+
+colvar {
+  name dist_along_arm
+
+  # Bounds (about half the 12.54 Å arm length, rounded)
+  width             0.1
+  lowerBoundary    -7.0
+  upperBoundary     7.0
+
+  distanceZ {
+    main {
+      atomNumbers { 965 } # 1 Na+
+    }
+    ref {
+      atomNumbers { 217 } # start of the arm C resid 2
+    }
+    ref2 {
+      atomNumbers { 156 } # end of the arm C resid 2
+    }
+    oneSiteTotalForce on  # only Na+ feels forces from this CV
+  }
+}
+
+
+colvar {
+  name coord_glyme_O
+  width             0.1
+  lowerBoundary     0.0
+  hardLowerBoundary yes
+  upperBoundary     7.0 
+  coordNum {
+        # componentCoeff 0.111 # normalization over 9 Li+
+        group1 { atomNumbers 965 }
+        group2 { atomNumbers 454 462 470 478 486 494 502 510 518 526 534 542 550 558 566 574 582 590 598 606 614 622 630 638 646 654 662 670 678 686 694 702 710 718 726 734 742 750 758 766 774 782 790 798 806 814 822 830 838 846 854 862 870 878 886 894 902 910 918 926 934 942 950 958} 
+        # Li-O  r0 cutoff
+        cutoff 3.35 
+        # numNumer 48
+        # numDenom 96
+        }
+}
+
+colvar {
+  name coord_tetramer_O_TFSI
+  width             0.1
+  lowerBoundary     0.0
+  hardLowerBoundary yes
+  upperBoundary     7.0 
+  coordNum {
+        # componentCoeff 0.111 # normalization over 9 Li+
+        group1 { atomNumbers 965 }
+        group2 { atomNumbers 22 23 24 25 47 48 49 50 72 73 74 75 97 98 99 100 135 136 137 138 160 161 162 163 185 186 187 188 210 211 212 213 248 249 250 251 273 274 275 276 298 299 300 301 323 324 325 326 361 362 363 364 386 387 388 389 411 412 413 414 436 437 438 439} 
+        # Li-O  r0 cutoff
+        cutoff 3.35 
+        # numNumer 4058
+        # numDenom 96
+        }
+}
+
+# colvar {
+#   name coord_tetramer_F
+#   width             0.1
+#   lowerBoundary     0.0
+#   hardLowerBoundary yes
+#   upperBoundary     7.0 
+#   coordNum {
+#         # componentCoeff 0.111 # normalization over 9 Li+
+#         group1 { atomNumbers 11 }
+#         group2 { atomNumbers type 5} 
+#         # Li-O  r0 cutoff
+#         cutoff 3.5 
+#         # numNumer 48
+#         # numDenom 96
+#         }
+# }
+
+# colvar {
+#   name coord_glyme_O
+#   width             0.1
+#   lowerBoundary     0.0
+#   hardLowerBoundary yes
+#   upperBoundary     7.0 
+#   coordNum {
+#         # componentCoeff 0.111 # normalization over 9 Li+
+#         group1 { atomNumbers 11 }
+#         group2 { atomNumbers <id of glyme O>} 
+#         # Li-O  r0 cutoff
+#         cutoff 3.35 
+#         # numNumer 48
+#         # numDenom 96
+#         }
+# }
+
+# colvar {
+#   name coord_tetramer_O
+#   width             0.1
+#   lowerBoundary     0.0
+#   hardLowerBoundary yes
+#   upperBoundary     7.0 
+#   coordNum {
+#         # componentCoeff 0.111 # normalization over 9 Li+
+#         group1 { atomNumbers 11 }
+#         group2 { atomNumbers type 10} 
+#         # Li-O  r0 cutoff
+#         cutoff 3.35 
+#         # numNumer 48
+#         # numDenom 96
+#         }
+# }
+
+# colvar {
+#   name dist_to_arm
+#   distanceXY {
+#     main {
+#       atomNumbers { 739 } # 1 Na+
+#     }
+#     ref {
+#       atomNumbers { 616 } # start of the arm C resid 33
+#     }
+#     ref2 {
+#       atomNumbers { 605 } # end of the arm C resid 33
+#     }
+#   }
+# }
+
+metadynamics {
+    name metadyn_d1
+    colvars dist_along_arm coord_glyme_O coord_tetramer_O_TFSI
+
+    hillWeight       0.6 # gaussian height, sampling accuracy
+    newHillFrequency 1000
+    hillWidth        1.25 # gaussian width, 2sigma value
+
+    useGrids   yes
+#    rebinGrids yes
+
+    outputEnergy on
+    outputFreq 100000
+
+    multipleReplicas on
+    replicasRegistry /expanse/lustre/projects/csd799/xiruan/na_conductor/tetramer_glymes/metadynamics/glyme_tetramer_8_1_fix_momentum/meta/multiple_replica.txt
+    replicaUpdateFrequency 25000
+    replicaID __REPID__
+
+    # writeTIPMF yes
+    writeFreeEnergyFile  yes
+    # keepFreeEnergyFiles yes
+    writeHillsTrajectory yes
+    writePartialFreeEnergyFile yes
+    
+#    writeHillsTrajectory yes
+}
+

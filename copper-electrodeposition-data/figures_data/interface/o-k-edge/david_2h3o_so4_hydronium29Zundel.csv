@@ -1,0 +1,5 @@
+filename,energy,fermi
+atomGS/scf.out,-32.66548437,-8.8363
+atomXCH/scf.out,-47.91142537,-11.3707
+bulkXCH/scf.out,-1308.49140132,2.9117
+bulkGS/scf.out,-1293.83655286,1.25265
