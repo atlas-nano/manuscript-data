@@ -1,0 +1,49 @@
+# Sutton-Chen liquid-metal deck, FIXED DENSITY (reproduces Sun et al. 2017
+# JCP 147,194505 protocol: NVT at the experimental density at Tm, 512 atoms,
+# 1 fs, melt-then-cool to target T, 50 ps equil + 100 ps prod).
+# REAL units so the py-xPT metals pipeline reads it unchanged.
+# Required -var: elem potfile mass latconst tmelt rtemp seed nmelt nequil nprod prefix
+units                real
+atom_style           atomic
+boundary             p p p
+
+lattice              fcc ${latconst}
+region               box block 0 4 0 4 0 8        # 4x4x8 conventional cells = 512 atoms
+create_box           1 box
+create_atoms         1 box
+mass                 1 ${mass}
+
+pair_style           eam/fs
+pair_coeff           * * ${potfile} ${elem}
+neighbor             2.0 bin
+neigh_modify         every 2 delay 4 check yes
+timestep             1.0                           # 1 fs
+
+write_data           ${prefix}.data.lammps nocoeff
+
+velocity             all create ${tmelt} ${seed} mom yes rot yes dist gaussian
+fix                  nodrift all momentum 100 linear 1 1 1
+
+# melt at high T (fixed volume), then cool to target T, then equilibrate
+thermo               500
+thermo_style         custom step temp pe press vol
+fix                  3 all nvt temp ${tmelt} ${tmelt} 100.0
+run                  ${nmelt}
+unfix                3
+fix                  3 all nvt temp ${tmelt} ${rtemp} 100.0
+run                  ${nequil}
+unfix                3
+fix                  3 all nvt temp ${rtemp} ${rtemp} 100.0
+run                  ${nequil}
+unfix                3
+
+# 2PT production: NVT at target T, dump unwrapped coords + velocities every 10 fs
+log                  ${prefix}.2pt.eng
+thermo               10
+thermo_style         custom etotal ke temp pe press vol
+thermo_modify        line multi
+fix                  2 all nvt temp ${rtemp} ${rtemp} 100.0
+dump                 1 all custom 10 ${prefix}.2pt.lammps id type xu yu zu vx vy vz
+run                  ${nprod}
+undump               1
+unfix                2
