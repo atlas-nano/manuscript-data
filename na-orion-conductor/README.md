@@ -1,6 +1,8 @@
 # Tailoring Energy Landscapes for Vehicular Transport in Single-Ion Conducting Organo Ionic Solids
 ## Molecular Dynamics Simulations
 
+**Archived on Zenodo:** https://doi.org/10.5281/zenodo.21448069
+
 This repository contains classical molecular dynamics and metadynamics simulations for studying sodium ion (Na+) conductivity in glyme-based electrolytes, focusing on the NA-Orion conductor system.
 
 ## Repository Structure
