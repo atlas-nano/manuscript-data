@@ -1,4 +1,7 @@
 # copper-electrodeposition-data
+
+**Archived on Zenodo:** https://doi.org/10.5281/zenodo.21448209
+
 This repository contains the computational data for the paper: "Direct Spectroscopic Evidence of an Atom-Transfer Mechanism during Copper Electrodeposition on Gold". The information is organized as follows:
 1. The input and output files for the XAS calculated spectra are publicly available at Zenodo: [https://doi.org/10.5281/zenodo.17657023](https://doi.org/10.5281/zenodo.17657023)
 2. The [structures](./structures/) folder contains the structures for the five kinds of systems studied:
