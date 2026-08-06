@@ -23,3 +23,12 @@ or Dryad), that DOI is the citable snapshot.
 
 Companion research codes (py-xPT, lj-4d-md, DMAx) live in the
 [`atlas-nano/codes`](https://github.com/atlas-nano/codes) repository.
+
+## Licence
+
+All data in this repository, in every subdirectory, are released under
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
+(CC-BY-4.0); see [`LICENSE`](LICENSE). This is the same licence recorded on the Zenodo
+archives listed above. Please cite both the paper and the relevant data DOI.
+
+Research code is licensed separately (MIT) in the `atlas-nano/codes` repository.

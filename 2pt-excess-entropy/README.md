@@ -128,4 +128,6 @@ valid.
 
 ## Licence
 
-Data are released under CC-BY-4.0.
+[CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/), as for the whole repository; the
+full text is in [`LICENSE`](../LICENSE) at the repository root and is included alongside
+this directory in the Zenodo archive.
