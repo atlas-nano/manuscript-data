@@ -7,10 +7,14 @@ Source of response Table R2.
   sex_tot-quantum.csv    excess entropy, quantum weighting   (k_B per molecule)
   sex_tot_classical.csv  excess entropy, classical weighting (k_B per molecule)
 
-WARNING - the column order is not the same in all four files. The two quantum files store
-(Temperature, Density) beneath a header that reads "Density, Temperature"; the two classical files
-store (Density, Temperature) as the header says. Merging them on the header names produces nonsense.
-Temperature is 220 throughout and density runs 0.85-1.30, so the two are easy to tell apart.
+All four files carry columns in the order their header states, (Density, Temperature, thermoValue),
+and can be merged on the column names.
+
+Note for anyone comparing against an earlier copy of these files: as originally produced, the two
+quantum files stored (Temperature, Density) beneath a header reading "Density, Temperature", while
+the two classical files stored the order the header states. They were normalised for this deposit.
+Only the column order changed; every value is bit-identical, and the two orders are trivially
+distinguishable because temperature is 220 throughout while density runs 0.85-1.30.
 
 Classical weighting is bounded above by quantum at every frequency, so S_ex(classical) must be more
 negative than S_ex(quantum) at every state point. Here the separation is 1.698-1.773 k_B. A result

@@ -54,7 +54,12 @@ independent 200 ps trajectory window**, not one row per state point. Mean, stand
 deviation and window count are recovered by grouping on `(Density, Temperature)`.
 
 No raw MD trajectories are included (too large). The LAMMPS and 2PT inputs are sufficient
-to regenerate them.
+to regenerate them. Self-diffusivities are not deposited; the diffusivity figure in the
+Supporting Information is the one item here that cannot be regenerated from these files.
+
+This directory is the authoritative copy. Earlier working copies of the same data used a
+different directory layout and, in places, different column conventions; where they differ,
+this one governs.
 
 ## Quickstart
 
@@ -108,15 +113,18 @@ valid.
 - **2PT excess entropy**: $S_{ex} = S_{liq} - S_{id}$, where $S_{liq} = S_q / (n \cdot R)$
   from the 2PT code's `Sq` output.
 - **Ideal-gas entropy**: $S_{id} = 3\,\mathrm{wsr\_ideal} + \mathrm{wsp\_ideal}$, from the
-  2PT code's printed values.
+  2PT code's printed values, i.e. three rotational degrees of freedom plus the
+  translational term. The factor of three is not a typo: checked against the deposited
+  components in `ideal_gas/rigid_rotor/` and `ideal_gas/translational/`, this reproduces the
+  totals in `ideal_gas/` to within 0.002 k_B at all 70 state points, whereas
+  $\mathrm{wsr} + \mathrm{wsp}$ is wrong by up to 3.8 k_B.
 - **Adjusted values**: the `adjusted/` directories add the per-model correction factor of
   manuscript Table 3, which references the IAPWS-95 excess entropy at the single state
   point ρ = 1.0 g/cm³, T = 300 K.
 - **Classical weighting**: `classical_weighting/` holds the liquid and excess entropies
-  under quantum and classical weighting of the solid-like density of states. Note that the
-  two quantum files store `(Temperature, Density)` beneath a header reading
-  `Density, Temperature`, while the classical two store the order the header states;
-  merging them on column names will silently produce nonsense.
+  under quantum and classical weighting of the solid-like density of states. All four files
+  carry their columns in the order the header states; see the directory's own `README.txt`
+  for a note on the normalisation applied for this deposit.
 
 ## Licence
 
