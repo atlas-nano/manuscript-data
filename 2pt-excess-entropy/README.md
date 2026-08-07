@@ -25,8 +25,11 @@ partition.
 ```
 2pt-excess-entropy/
   figures/
-    reproduce_figures.py     regenerates main-text Figs. 5 and 6 and SI Fig. S7
-    build_iapws_reference.py rebuilds data/reference/iapws_sex_kb_corrected.csv
+    reproduce_figures.py       regenerates main-text Figs. 5 and 6 and SI Fig. S7
+    build_iapws_reference.py   rebuilds data/reference/iapws_sex_kb_corrected.csv
+    fig_5_plotter_original.ipynb  the notebook used for the originally submitted Fig. 5,
+                              one model and one isotherm per run, against the uncorrected
+                              reference; kept as provenance, superseded by the script above
   data/
     entropy/
       2body_translational/   S_2^tr, from the O–O radial distribution function
@@ -44,6 +47,7 @@ partition.
     reference/
       iapws_sex_kb.csv           IAPWS-95 excess entropy as originally evaluated
       iapws_sex_kb_corrected.csv the same grid with a validity status per point (below)
+    diffusivity/             2PT self-diffusivities (cm^2/s), all four models, full grid
     trajectory_counts/       windows retained per state point, by model, for the 2PT
                               excess entropy, the two-body entropy, and the diffusivity
     power_spectra/           vibrational density-of-states (.pwr) files, five state
@@ -57,8 +61,8 @@ independent 200 ps trajectory window**, not one row per state point. Mean, stand
 deviation and window count are recovered by grouping on `(Density, Temperature)`.
 
 No raw MD trajectories are included (too large). The LAMMPS and 2PT inputs are sufficient
-to regenerate them. Self-diffusivities are not deposited; the diffusivity figure in the
-Supporting Information is the one item here that cannot be regenerated from these files.
+to regenerate them. Every figure in the paper and its Supporting Information can now be
+regenerated from what is deposited here.
 
 This directory is the authoritative copy. Earlier working copies of the same data used a
 different directory layout and, in places, different column conventions; where they differ,
@@ -82,6 +86,7 @@ python build_iapws_reference.py                                  # rebuilds the 
 | Fig. 6 (residual heat maps) | `figures/reproduce_figures.py` | `data/entropy/*/adjusted/`, `data/reference/` |
 | SI Fig. S7 (IAPWS-95 excess entropy) | `figures/reproduce_figures.py` | `data/reference/` |
 | Response Table R2 (classical vs quantum weighting) | — | `data/entropy/classical_weighting/` |
+| SI Fig. S8 (self-diffusivity) | — | `data/diffusivity/` |
 
 `--ref original` exists so the script can be validated against the originally published
 artwork before the corrected reference is applied. It reproduces the original worst-case
