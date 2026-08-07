@@ -11,8 +11,9 @@ Compares the two-phase thermodynamics (2PT) excess entropy against the two-body
 approximation $S_2$ for four water models (SPC/E, TIP4P/2005, TIP4P/2005f, TIP4P/ICE)
 across a 220–360 K, 0.85–1.3 g/cm³ grid.
 
-**Archived on Zenodo:** https://doi.org/10.5281/zenodo.21824565
-(all versions: https://doi.org/10.5281/zenodo.21824564)
+**Archived on Zenodo:** https://doi.org/10.5281/zenodo.21833058
+(all versions: https://doi.org/10.5281/zenodo.21824564; the earlier
+https://doi.org/10.5281/zenodo.21824565 predates the self-diffusivities)
 
 The 2PT entropies here were produced with the reference implementation archived at
 [`codes/2pt-legacy`](https://github.com/atlas-nano/codes/tree/main/2pt-legacy)
