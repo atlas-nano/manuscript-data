@@ -1,7 +1,7 @@
-# samQEq: charge equilibration for molecules and conductors — data
+# samQEq: unified charge equilibration from molecules to conductors — data
 
-Input decks, analysis scripts and outputs behind N. Solan, D. Sun and T. A. Pascal, *samQEq: charge equilibration
-for molecules and conductors*, Computer Physics Communications (submitted). The code is samQEq 1.0.0,
+Input decks, analysis scripts and outputs behind N. Solan, D. Sun and T. A. Pascal, *samQEq: unified charge
+equilibration from molecules to conductors*, Computer Physics Communications (submitted). The code is samQEq 1.0.0,
 https://github.com/atlas-nano/codes/tree/main/samqeq, archived at https://doi.org/10.5281/zenodo.23043176.
 
 ## Where each result lives
@@ -17,7 +17,8 @@ https://github.com/atlas-nano/codes/tree/main/samqeq, archived at https://doi.or
 | §7.3 ReaxFF charge step | `reaxff_port/` | `compare.py`; `RESULT_reactive_port_20260916.md` |
 | §8 grid self-term sensitivity (51 frames) | `nve_clean/runs_selfterm/` | `nve_clean/run_selfterm.py --analyze` |
 | Table 5 (charge dynamics, NVE) | `nve_clean/runs/`, `nve_clean/timing/` | `nve_clean/analyze_nve.py` → `nve.csv`; `RESULT_nve_clean_20260928.md` |
-| §9 13,216-atom Cu/electrolyte cell scaling (Perlmutter CPU) | `cluster_runs/cu_cell_scaling_perlmutter/` | logs per rank count |
+| §9 13,216-atom Cu/electrolyte cell in the conductor mode: mobile Mendelev EAM/FS electrodes (`runs_mobile/`, 5 ps stability run), fixed electrodes and the inert-copper baseline (`runs/`) (Perlmutter CPU) | `cluster_runs/cu_cell_conductor_perlmutter/` | `RESULT_cucell_conductor_20260929.md`; logs per arm and rank count (the inputs are at the top level) |
+| earlier scaling runs of the same cell, copper held neutral atom by atom | `cluster_runs/cu_cell_scaling_perlmutter/` | logs per rank count |
 | Fig. 4 (GPU scaling, Perlmutter) | `gpu_scaling_perlmutter/` | `pm_harvest.py` → `scaling.csv` |
 | Table 4 (device benchmark, Expanse V100 vs CPU) | `cluster_runs/gpu_benchmark_expanse/` | job logs |
 | SI §S3 dense spectrum of the native water operator | `native_dense_diag/` | `hd_reconstruct.py` |
