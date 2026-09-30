@@ -49,7 +49,6 @@ axL.set_title("(a)  strong scaling", loc="left", fontsize=8)
 axL.legend(frameon=False, loc="upper left", handlelength=1.8)
 axL.text(0.30, 0.035, "dashed: ideal scaling from the 4-device point", transform=axL.transAxes,
          ha="left", va="bottom", fontsize=6.4, color=MUTED, style="italic")
-axL.grid(True, which="major", color=figstyle.GRID, lw=0.5, zorder=0)
 axL.set_axisbelow(True)
 
 CATS = [("modify", "charge solve (Modify)", PURPLE),
@@ -80,7 +79,6 @@ axR.legend(frameon=False, fontsize=6.3, loc="center left", bbox_to_anchor=(1.01,
 for i, r in enumerate(order):
     axR.text(i, float(r["modify"]) / 2, f"{float(r['modify']):.0f}%", ha="center",
              va="center", fontsize=6.6, color="white", zorder=5)
-axR.grid(True, axis="y", color=figstyle.GRID, lw=0.5, zorder=0)
 axR.set_axisbelow(True)
 
 fig.savefig(os.path.join(HERE, "fig_gpuscale.pdf"), dpi=300, bbox_inches="tight")

@@ -38,7 +38,6 @@ axa.invert_xaxis()
 axa.set_xlabel(r"charge-solve tolerance $\tau$")
 axa.set_ylabel(r"mean molecular dipole $\mu$  (D)")
 axa.set_ylim(2.70, 2.83)
-axa.grid(True, axis="y", zorder=0)
 figstyle.panel_label(axa, "a", dx=-0.17)
 
 axa.annotate("converged label,\ndipole 3.0% low",
@@ -56,7 +55,6 @@ axb.invert_xaxis()
 axb.set_xlabel(r"charge-solve tolerance $\tau$")
 axb.set_ylabel("Krylov iterations")
 axb.set_ylim(0, 34)
-axb.grid(True, axis="y", zorder=0)
 figstyle.panel_label(axb, "b", dx=-0.17)
 
 for ax in (axa, axb):
