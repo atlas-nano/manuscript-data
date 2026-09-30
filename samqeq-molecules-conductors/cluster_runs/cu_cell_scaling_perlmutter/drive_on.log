@@ -1,0 +1,28 @@
+host=login40  jobid=57633318  binary=/global/u1/t/tpascal/codes/lammps/bin/lmp_cpu
+start Wed Aug 26 04:28:20 PM PDT 2026
+=== N=1 np=16 ionfield=on -> log.np16_N1.on ===
+    rc=0
+    Loop time of 57.519 on 16 procs for 500 steps with 13216 atoms
+    Performance: 0.188 ns/day, 127.820 hours/ns, 8.693 timesteps/s, 114.884 katom-step/s
+=== N=1 np=32 ionfield=on -> log.np32_N1.on ===
+    rc=0
+    Loop time of 40.5968 on 32 procs for 500 steps with 13216 atoms
+    Performance: 0.266 ns/day, 90.215 hours/ns, 12.316 timesteps/s, 162.771 katom-step/s
+=== N=1 np=64 ionfield=on -> log.np64_N1.on ===
+    rc=0
+    Loop time of 29.8554 on 64 procs for 500 steps with 13216 atoms
+    Performance: 0.362 ns/day, 66.345 hours/ns, 16.747 timesteps/s, 221.334 katom-step/s
+=== N=1 np=128 ionfield=on -> log.np128_N1.on ===
+    rc=0
+    Loop time of 25.897 on 128 procs for 500 steps with 13216 atoms
+    Performance: 0.417 ns/day, 57.549 hours/ns, 19.307 timesteps/s, 255.165 katom-step/s
+=== N=2 np=256 ionfield=on -> log.np256_N2.on ===
+    rc=0
+    Loop time of 20.7934 on 256 procs for 500 steps with 13216 atoms
+    Performance: 0.519 ns/day, 46.207 hours/ns, 24.046 timesteps/s, 317.794 katom-step/s
+=== N=4 np=512 ionfield=on -> log.np512_N4.on ===
+    rc=0
+    Loop time of 18.5571 on 512 procs for 500 steps with 13216 atoms
+    Performance: 0.582 ns/day, 41.238 hours/ns, 26.944 timesteps/s, 356.091 katom-step/s
+end Wed Aug 26 04:32:08 PM PDT 2026
+DONE_F3_SCALING

@@ -1,0 +1,376 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# conductor demonstration, dynamics: arm samqeq, eta_Au 0.3 (run_dyn.py)
+units           metal
+atom_style      full
+boundary        p p f
+fix             pb all property/atom i_body ghost yes
+read_data       data fix pb NULL RigidBodies
+Reading data file ...
+  orthogonal box = (0 0 0) to (17.650658 20.381224 60)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  564 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 0) to (17.650658 20.381224 60)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  162 bonds
+  reading angles ...
+  81 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+group           au   type 1
+240 atoms in group au
+group           water type 2 3 4
+324 atoms in group water
+group           fq   type 1 3 4
+483 atoms in group fq
+pair_style      hybrid/overlay lj/cut 12.0 coul/long 12.0 coul/shield/intra 12.0 all gaussian
+pair_coeff      * * lj/cut 0.0 1.0
+pair_coeff      2 2 lj/cut 0.012412 3.159
+pair_coeff      1 2 lj/cut 0.05 3.0            # illustrative Au-O term (not a fitted gold-water potential)
+pair_coeff      * * coul/long
+pair_coeff      1 1 coul/shield/intra 1.618000
+pair_coeff      1 2 coul/shield/intra 0.714283
+pair_coeff      1 3 coul/shield/intra 0.808855
+pair_coeff      1 4 coul/shield/intra 0.714283
+pair_coeff      2 2 coul/shield/intra 0.315328
+pair_coeff      2 3 coul/shield/intra 0.357078
+pair_coeff      2 4 coul/shield/intra 0.315328
+pair_coeff      3 3 coul/shield/intra 0.404355
+pair_coeff      3 4 coul/shield/intra 0.357078
+pair_coeff      4 4 coul/shield/intra 0.315328
+special_bonds   lj/coul 1.0e-8 1.0e-8 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1e-08    1e-08    1       
+  special bond factors coul:  1e-08    1e-08    1       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+kspace_style    pppm/samqeq 1.0e-6
+kspace_modify   slab 3.0 mesh 24 28 80 gewald 0.35
+Updated KSpace settings:
+  KSpace computation is turned:    ON
+  Use MPI collective operations:   OFF
+  Use MPI non-blocking operations: OFF
+  Gewald manually set to:          0.35
+  Slab volfactor manually set to:    3
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+# per-molecule constraints
+fix             chg fq qeq/sam 1 0.0 10.0 1.0e-8 param
+fix_modify      chg shield gaussian
+samqeq: lr-solve shielding = PQEq Gaussian erf(a_ij r)/r (param 4th col = Rc (Gaussian radius)); routed through compute_H + add_fixed_charge_field + the legacy gas path (calc_Hval)
+fix_modify      chg energy yes
+fix_modify      chg gself on width 0.50 types 1
+samqeq: gself RESTRICTED to type(s) 1 -- the self-energy is a lattice regulariser (metal sites, where eta is a bulk TF quantity with no width in it) and a DOUBLE COUNT on molecular sites, whose eta was fit to the IP/EA of a finite-width atom
+samqeq: gself ON -- finite-width charge self-energy K_e*sqrt(2a/pi) ADDED to the on-site diagonal (width 0.500 A for the listed type(s) only); folded into eta from eta0 at init()
+velocity        water create 298.0 4928459 mom yes rot yes dist gaussian
+fix             rig water rigid/nvt/small custom i_body temp 298.0 298.0 0.1
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  81 rigid bodies with 324 atoms
+  0.87348128 = max distance from body owner to body atom
+variable        aq atom abs(q)
+compute         qmax fq reduce max v_aq
+thermo_style    custom step pe c_qmax
+thermo          500
+timestep        0.0002
+dump            dq all custom 2500 charges.lammpstrj id mol type q x y z
+dump_modify     dq sort id
+run             25000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+WARNING: Using kspace solver on system with no charge (src/kspace.cpp:317)
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.35
+  grid = 24 30 80
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0
+  estimated relative force accuracy = 0
+  using double precision FFTW3
+  3d grid and FFT values/proc = 94054 57600
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:165)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:167)
+WARNING: Angles are defined but no angle style is set (src/force.cpp:170)
+WARNING: Likewise 1-3 special neighbor interactions != 1.0 (src/force.cpp:172)
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+samqeq: gself on-site self-energy per type (eV/e^2, added to eta; 0.000 = excluded): 1:16.248 2:0.000 3:0.000 4:0.000
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 3 3 9
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, half/full from (5)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.39461 +/- 0.00022 (raw, K=16 deterministic probes) = 5.6822 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 34 iters (=34 matvecs), resid/b=8.79e-09
+Per MPI rank memory allocation (min/avg/max) = 38.54 | 38.54 | 38.54 Mbytes
+   Step         PotEng         c_qmax    
+         0  -132.3362       1.2818217    
+samqeq SOLVER-DIAG step 200: CG 34 iters (=34 matvecs), resid/b=6.76e-09
+samqeq SOLVER-DIAG step 400: CG 33 iters (=33 matvecs), resid/b=9.56e-09
+       500  -134.91743      1.2461518    
+samqeq SOLVER-DIAG step 600: CG 33 iters (=33 matvecs), resid/b=6.97e-09
+samqeq SOLVER-DIAG step 800: CG 32 iters (=32 matvecs), resid/b=9.63e-09
+samqeq SOLVER-DIAG step 1000: CG 33 iters (=33 matvecs), resid/b=9.28e-09
+      1000  -135.91968      1.2352329    
+samqeq SOLVER-DIAG step 1200: CG 33 iters (=33 matvecs), resid/b=7.04e-09
+samqeq SOLVER-DIAG step 1400: CG 34 iters (=34 matvecs), resid/b=5.52e-09
+      1500  -138.38978      1.2504109    
+samqeq SOLVER-DIAG step 1600: CG 34 iters (=34 matvecs), resid/b=2.51e-09
+samqeq SOLVER-DIAG step 1800: CG 34 iters (=34 matvecs), resid/b=4.03e-09
+samqeq SOLVER-DIAG step 2000: CG 33 iters (=33 matvecs), resid/b=8.07e-09
+      2000  -139.50254      1.2527879    
+samqeq SOLVER-DIAG step 2200: CG 34 iters (=34 matvecs), resid/b=8.16e-09
+samqeq SOLVER-DIAG step 2400: CG 34 iters (=34 matvecs), resid/b=6.10e-09
+      2500  -140.12727      1.2602619    
+samqeq SOLVER-DIAG step 2600: CG 34 iters (=34 matvecs), resid/b=6.26e-09
+samqeq SOLVER-DIAG step 2800: CG 34 iters (=34 matvecs), resid/b=5.48e-09
+samqeq SOLVER-DIAG step 3000: CG 34 iters (=34 matvecs), resid/b=5.77e-09
+      3000  -141.13417      1.2351595    
+samqeq SOLVER-DIAG step 3200: CG 34 iters (=34 matvecs), resid/b=7.34e-09
+samqeq SOLVER-DIAG step 3400: CG 34 iters (=34 matvecs), resid/b=6.65e-09
+      3500  -141.85086      1.2801868    
+samqeq SOLVER-DIAG step 3600: CG 33 iters (=33 matvecs), resid/b=9.85e-09
+samqeq SOLVER-DIAG step 3800: CG 34 iters (=34 matvecs), resid/b=7.48e-09
+samqeq SOLVER-DIAG step 4000: CG 32 iters (=32 matvecs), resid/b=9.17e-09
+      4000  -142.78422      1.2774944    
+samqeq SOLVER-DIAG step 4200: CG 34 iters (=34 matvecs), resid/b=4.73e-09
+samqeq SOLVER-DIAG step 4400: CG 34 iters (=34 matvecs), resid/b=7.46e-09
+      4500  -143.71901      1.2782233    
+samqeq SOLVER-DIAG step 4600: CG 34 iters (=34 matvecs), resid/b=7.69e-09
+samqeq SOLVER-DIAG step 4800: CG 34 iters (=34 matvecs), resid/b=5.81e-09
+samqeq SOLVER-DIAG step 5000: CG 34 iters (=34 matvecs), resid/b=7.12e-09
+      5000  -144.25317      1.2405992    
+samqeq SOLVER-DIAG step 5200: CG 33 iters (=33 matvecs), resid/b=9.19e-09
+samqeq SOLVER-DIAG step 5400: CG 34 iters (=34 matvecs), resid/b=5.12e-09
+      5500  -144.05349      1.3089685    
+samqeq SOLVER-DIAG step 5600: CG 34 iters (=34 matvecs), resid/b=8.38e-09
+samqeq SOLVER-DIAG step 5800: CG 34 iters (=34 matvecs), resid/b=4.44e-09
+samqeq SOLVER-DIAG step 6000: CG 34 iters (=34 matvecs), resid/b=4.33e-09
+      6000  -143.45078      1.2402414    
+samqeq SOLVER-DIAG step 6200: CG 34 iters (=34 matvecs), resid/b=5.13e-09
+samqeq SOLVER-DIAG step 6400: CG 34 iters (=34 matvecs), resid/b=7.43e-09
+      6500  -144.00875      1.3200498    
+samqeq SOLVER-DIAG step 6600: CG 34 iters (=34 matvecs), resid/b=8.82e-09
+samqeq SOLVER-DIAG step 6800: CG 34 iters (=34 matvecs), resid/b=8.98e-09
+samqeq SOLVER-DIAG step 7000: CG 34 iters (=34 matvecs), resid/b=5.76e-09
+      7000  -144.01737      1.3324917    
+samqeq SOLVER-DIAG step 7200: CG 34 iters (=34 matvecs), resid/b=4.06e-09
+samqeq SOLVER-DIAG step 7400: CG 34 iters (=34 matvecs), resid/b=8.12e-09
+      7500  -144.23505      1.2775361    
+samqeq SOLVER-DIAG step 7600: CG 34 iters (=34 matvecs), resid/b=4.99e-09
+samqeq SOLVER-DIAG step 7800: CG 34 iters (=34 matvecs), resid/b=9.18e-09
+samqeq SOLVER-DIAG step 8000: CG 34 iters (=34 matvecs), resid/b=5.34e-09
+      8000  -145.51195      1.2713105    
+samqeq SOLVER-DIAG step 8200: CG 34 iters (=34 matvecs), resid/b=8.35e-09
+samqeq SOLVER-DIAG step 8400: CG 34 iters (=34 matvecs), resid/b=8.70e-09
+      8500  -145.61334      1.2924642    
+samqeq SOLVER-DIAG step 8600: CG 34 iters (=34 matvecs), resid/b=9.36e-09
+samqeq SOLVER-DIAG step 8800: CG 34 iters (=34 matvecs), resid/b=6.30e-09
+samqeq SOLVER-DIAG step 9000: CG 34 iters (=34 matvecs), resid/b=7.67e-09
+      9000  -145.90547      1.2951978    
+samqeq SOLVER-DIAG step 9200: CG 34 iters (=34 matvecs), resid/b=5.68e-09
+samqeq SOLVER-DIAG step 9400: CG 34 iters (=34 matvecs), resid/b=9.15e-09
+      9500  -145.74129      1.3016203    
+samqeq SOLVER-DIAG step 9600: CG 34 iters (=34 matvecs), resid/b=7.37e-09
+samqeq SOLVER-DIAG step 9800: CG 34 iters (=34 matvecs), resid/b=5.14e-09
+samqeq SOLVER-DIAG step 10000: CG 34 iters (=34 matvecs), resid/b=7.88e-09
+     10000  -145.34437      1.3217573    
+samqeq SOLVER-DIAG step 10200: CG 34 iters (=34 matvecs), resid/b=7.53e-09
+samqeq SOLVER-DIAG step 10400: CG 34 iters (=34 matvecs), resid/b=5.56e-09
+     10500  -145.01229      1.2804249    
+samqeq SOLVER-DIAG step 10600: CG 34 iters (=34 matvecs), resid/b=8.13e-09
+samqeq SOLVER-DIAG step 10800: CG 35 iters (=35 matvecs), resid/b=3.30e-09
+samqeq SOLVER-DIAG step 11000: CG 34 iters (=34 matvecs), resid/b=8.69e-09
+     11000  -144.89317      1.2769615    
+samqeq SOLVER-DIAG step 11200: CG 34 iters (=34 matvecs), resid/b=3.81e-09
+samqeq SOLVER-DIAG step 11400: CG 34 iters (=34 matvecs), resid/b=9.01e-09
+     11500  -145.15166      1.2375719    
+samqeq SOLVER-DIAG step 11600: CG 34 iters (=34 matvecs), resid/b=5.30e-09
+samqeq SOLVER-DIAG step 11800: CG 34 iters (=34 matvecs), resid/b=6.73e-09
+samqeq SOLVER-DIAG step 12000: CG 34 iters (=34 matvecs), resid/b=6.35e-09
+     12000  -145.11367      1.2420212    
+samqeq SOLVER-DIAG step 12200: CG 35 iters (=35 matvecs), resid/b=3.77e-09
+samqeq SOLVER-DIAG step 12400: CG 34 iters (=34 matvecs), resid/b=9.13e-09
+     12500  -145.34444      1.2598196    
+samqeq SOLVER-DIAG step 12600: CG 34 iters (=34 matvecs), resid/b=6.24e-09
+samqeq SOLVER-DIAG step 12800: CG 34 iters (=34 matvecs), resid/b=4.43e-09
+samqeq SOLVER-DIAG step 13000: CG 34 iters (=34 matvecs), resid/b=4.39e-09
+     13000  -145.61755      1.2681078    
+samqeq SOLVER-DIAG step 13200: CG 34 iters (=34 matvecs), resid/b=9.85e-09
+samqeq SOLVER-DIAG step 13400: CG 34 iters (=34 matvecs), resid/b=8.40e-09
+     13500  -145.26438      1.2393195    
+samqeq SOLVER-DIAG step 13600: CG 34 iters (=34 matvecs), resid/b=8.72e-09
+samqeq SOLVER-DIAG step 13800: CG 33 iters (=33 matvecs), resid/b=7.49e-09
+samqeq SOLVER-DIAG step 14000: CG 34 iters (=34 matvecs), resid/b=8.91e-09
+     14000  -145.85783      1.2878866    
+samqeq SOLVER-DIAG step 14200: CG 34 iters (=34 matvecs), resid/b=6.64e-09
+samqeq SOLVER-DIAG step 14400: CG 34 iters (=34 matvecs), resid/b=6.68e-09
+     14500  -146.33783      1.2601948    
+samqeq SOLVER-DIAG step 14600: CG 35 iters (=35 matvecs), resid/b=3.35e-09
+samqeq SOLVER-DIAG step 14800: CG 34 iters (=34 matvecs), resid/b=4.14e-09
+samqeq SOLVER-DIAG step 15000: CG 34 iters (=34 matvecs), resid/b=9.64e-09
+     15000  -145.73243      1.2745647    
+samqeq SOLVER-DIAG step 15200: CG 34 iters (=34 matvecs), resid/b=7.49e-09
+samqeq SOLVER-DIAG step 15400: CG 34 iters (=34 matvecs), resid/b=8.40e-09
+     15500  -145.24648      1.2838137    
+samqeq SOLVER-DIAG step 15600: CG 34 iters (=34 matvecs), resid/b=4.18e-09
+samqeq SOLVER-DIAG step 15800: CG 34 iters (=34 matvecs), resid/b=7.16e-09
+samqeq SOLVER-DIAG step 16000: CG 34 iters (=34 matvecs), resid/b=5.88e-09
+     16000  -145.14471      1.2694432    
+samqeq SOLVER-DIAG step 16200: CG 34 iters (=34 matvecs), resid/b=4.14e-09
+samqeq SOLVER-DIAG step 16400: CG 34 iters (=34 matvecs), resid/b=8.11e-09
+     16500  -145.1495       1.26772      
+samqeq SOLVER-DIAG step 16600: CG 34 iters (=34 matvecs), resid/b=6.77e-09
+samqeq SOLVER-DIAG step 16800: CG 34 iters (=34 matvecs), resid/b=4.77e-09
+samqeq SOLVER-DIAG step 17000: CG 33 iters (=33 matvecs), resid/b=8.94e-09
+     17000  -144.98278      1.2649639    
+samqeq SOLVER-DIAG step 17200: CG 33 iters (=33 matvecs), resid/b=8.63e-09
+samqeq SOLVER-DIAG step 17400: CG 34 iters (=34 matvecs), resid/b=6.93e-09
+     17500  -145.88462      1.2846642    
+samqeq SOLVER-DIAG step 17600: CG 34 iters (=34 matvecs), resid/b=7.69e-09
+samqeq SOLVER-DIAG step 17800: CG 34 iters (=34 matvecs), resid/b=7.52e-09
+samqeq SOLVER-DIAG step 18000: CG 34 iters (=34 matvecs), resid/b=7.53e-09
+     18000  -145.72336      1.3029558    
+samqeq SOLVER-DIAG step 18200: CG 34 iters (=34 matvecs), resid/b=6.87e-09
+samqeq SOLVER-DIAG step 18400: CG 34 iters (=34 matvecs), resid/b=8.90e-09
+     18500  -145.35694      1.2771432    
+samqeq SOLVER-DIAG step 18600: CG 34 iters (=34 matvecs), resid/b=5.21e-09
+samqeq SOLVER-DIAG step 18800: CG 34 iters (=34 matvecs), resid/b=9.44e-09
+samqeq SOLVER-DIAG step 19000: CG 34 iters (=34 matvecs), resid/b=8.87e-09
+     19000  -145.44198      1.2862896    
+samqeq SOLVER-DIAG step 19200: CG 34 iters (=34 matvecs), resid/b=5.95e-09
+samqeq SOLVER-DIAG step 19400: CG 34 iters (=34 matvecs), resid/b=7.03e-09
+     19500  -145.34174      1.2666976    
+samqeq SOLVER-DIAG step 19600: CG 33 iters (=33 matvecs), resid/b=6.71e-09
+samqeq SOLVER-DIAG step 19800: CG 34 iters (=34 matvecs), resid/b=6.44e-09
+samqeq SOLVER-DIAG step 20000: CG 35 iters (=35 matvecs), resid/b=3.65e-09
+     20000  -144.69626      1.2964366    
+samqeq SOLVER-DIAG step 20200: CG 33 iters (=33 matvecs), resid/b=9.82e-09
+samqeq SOLVER-DIAG step 20400: CG 34 iters (=34 matvecs), resid/b=6.90e-09
+     20500  -144.60843      1.2647713    
+samqeq SOLVER-DIAG step 20600: CG 33 iters (=33 matvecs), resid/b=9.47e-09
+samqeq SOLVER-DIAG step 20800: CG 33 iters (=33 matvecs), resid/b=9.42e-09
+samqeq SOLVER-DIAG step 21000: CG 35 iters (=35 matvecs), resid/b=2.48e-09
+     21000  -144.83496      1.2774904    
+samqeq SOLVER-DIAG step 21200: CG 34 iters (=34 matvecs), resid/b=6.75e-09
+samqeq SOLVER-DIAG step 21400: CG 34 iters (=34 matvecs), resid/b=3.97e-09
+     21500  -145.38005      1.2530736    
+samqeq SOLVER-DIAG step 21600: CG 34 iters (=34 matvecs), resid/b=5.43e-09
+samqeq SOLVER-DIAG step 21800: CG 34 iters (=34 matvecs), resid/b=9.40e-09
+samqeq SOLVER-DIAG step 22000: CG 34 iters (=34 matvecs), resid/b=9.11e-09
+     22000  -145.26477      1.3083167    
+samqeq SOLVER-DIAG step 22200: CG 34 iters (=34 matvecs), resid/b=9.13e-09
+samqeq SOLVER-DIAG step 22400: CG 34 iters (=34 matvecs), resid/b=5.38e-09
+     22500  -144.99468      1.2797302    
+samqeq SOLVER-DIAG step 22600: CG 35 iters (=35 matvecs), resid/b=3.44e-09
+samqeq SOLVER-DIAG step 22800: CG 35 iters (=35 matvecs), resid/b=3.85e-09
+samqeq SOLVER-DIAG step 23000: CG 35 iters (=35 matvecs), resid/b=3.64e-09
+     23000  -144.91352      1.2969699    
+samqeq SOLVER-DIAG step 23200: CG 35 iters (=35 matvecs), resid/b=3.36e-09
+samqeq SOLVER-DIAG step 23400: CG 34 iters (=34 matvecs), resid/b=9.37e-09
+     23500  -145.57978      1.2638571    
+samqeq SOLVER-DIAG step 23600: CG 34 iters (=34 matvecs), resid/b=6.24e-09
+samqeq SOLVER-DIAG step 23800: CG 34 iters (=34 matvecs), resid/b=4.96e-09
+samqeq SOLVER-DIAG step 24000: CG 34 iters (=34 matvecs), resid/b=9.08e-09
+     24000  -145.81279      1.2694992    
+samqeq SOLVER-DIAG step 24200: CG 34 iters (=34 matvecs), resid/b=6.80e-09
+samqeq SOLVER-DIAG step 24400: CG 34 iters (=34 matvecs), resid/b=7.60e-09
+     24500  -145.67722      1.2683805    
+samqeq SOLVER-DIAG step 24600: CG 35 iters (=35 matvecs), resid/b=3.48e-09
+samqeq SOLVER-DIAG step 24800: CG 34 iters (=34 matvecs), resid/b=8.98e-09
+samqeq SOLVER-DIAG step 25000: CG 34 iters (=34 matvecs), resid/b=8.49e-09
+     25000  -146.90209      1.2624069    
+Loop time of 1932.33 on 1 procs for 25000 steps with 564 atoms
+
+Performance: 0.224 ns/day, 107.352 hours/ns, 12.938 timesteps/s, 7.297 katom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 185.24     | 185.24     | 185.24     |   0.0 |  9.59
+Bond    | 0.011074   | 0.011074   | 0.011074   |   0.0 |  0.00
+Kspace  | 95.072     | 95.072     | 95.072     |   0.0 |  4.92
+Neigh   | 1.2869     | 1.2869     | 1.2869     |   0.0 |  0.07
+Comm    | 0.49363    | 0.49363    | 0.49363    |   0.0 |  0.03
+Output  | 0.0068368  | 0.0068368  | 0.0068368  |   0.0 |  0.00
+Modify  | 1650       | 1650       | 1650       |   0.0 | 85.39
+Other   |            | 0.2077     |            |       |  0.01
+
+Nlocal:            564 ave         564 max         564 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2892 ave        2892 max        2892 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         199326 ave      199326 max      199326 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       398652 ave      398652 max      398652 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 398652
+Ave neighs/atom = 706.82979
+Ave special neighs/atom = 0.86170213
+Neighbor list builds = 194
+Dangerous builds = 0
+print           "DYN_DONE" file done.txt screen no
+Total wall time: 0:32:12

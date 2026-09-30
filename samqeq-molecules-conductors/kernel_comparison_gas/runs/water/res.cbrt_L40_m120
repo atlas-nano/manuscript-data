@@ -1,0 +1,1 @@
+RESULT_R2 kernel=cbrt L=40 qM=0.908808 qH1=-0.454404 qH2=-0.454404 mu_D=1.903224 pe=0.824843 ecoul=-8.206760 elong=-3.481703 fchg=12.513306 evdwl=0.000000  |  samqeq SOLVER-DIAG step 0: CG 3 iters (=3 matvecs), resid/b=2.26e-17  |  bin=1789612190:481203488

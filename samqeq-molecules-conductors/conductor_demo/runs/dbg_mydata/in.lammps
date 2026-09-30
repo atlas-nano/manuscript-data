@@ -1,0 +1,29 @@
+# 180 SPC-FQ molecules, lateral box of the Au(111) slab, 0.98 g/cc; settings of the stable v_mine variant
+units        metal
+atom_style   full
+boundary     p p p
+read_data    mydata
+group        fq type 2 3
+pair_style   hybrid/overlay lj/cut 12.0 coul/long 12.0 coul/shield/intra 12.0 all cbrt
+pair_coeff   * * lj/cut 0.0 1.0
+pair_coeff   2 2 lj/cut 0.01275 3.144
+pair_coeff   * * coul/long
+pair_coeff   * * coul/shield/intra 1.11
+kspace_style pppm/samqeq 1.0e-6
+kspace_modify gewald 0.35 mesh 24 28 20
+neighbor     2.0 bin
+neigh_modify every 1 delay 0 check yes
+fix          chg fq qeq/sam 1 0.0 12.0 1.0e-7 param3
+fix_modify   chg shield cbrt
+velocity     all create 298 4928459 mom yes rot yes
+variable     aq atom abs(q)
+compute      qmax fq reduce max v_aq
+thermo_style custom step temp pe c_qmax
+thermo       500
+timestep     0.00025
+fix          integ all rigid/nvt/small molecule temp 298 298 0.02
+run          2000
+unfix        integ
+timestep     0.001
+fix          integ all rigid/nvt/small molecule temp 298 298 0.1
+run          3000

@@ -1,0 +1,154 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# conductor demonstration, experiment II: image law. arm nogself, eta_Au 5.172, z 3.0 A (run_exp2.py)
+units           metal
+atom_style      full
+boundary        p p f
+read_data       data
+Reading data file ...
+  orthogonal box = (0 0 0) to (52.951974 61.143673 60)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2162 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+group           au   type 1
+2160 atoms in group au
+group           ion  type 2
+2 atoms in group ion
+pair_style      hybrid/overlay lj/cut 12.0 coul/long 12.0 coul/shield/intra 12.0 all gaussian
+pair_coeff      * * lj/cut 0.0 1.0
+pair_coeff      * * coul/long
+pair_coeff      1 1 coul/shield/intra 1.618
+pair_coeff      2 2 coul/shield/intra 0.5
+kspace_style    pppm/samqeq 1.0e-6
+kspace_modify   slab 3.0 mesh 72 84 80 gewald 0.35
+Updated KSpace settings:
+  KSpace computation is turned:    ON
+  Use MPI collective operations:   OFF
+  Use MPI non-blocking operations: OFF
+  Gewald manually set to:          0.35
+  Slab volfactor manually set to:    3
+neighbor        2.0 bin
+fix             chg au qeq/sam 1 0.0 10.0 1.0e-8 param
+fix_modify      chg shield gaussian
+samqeq: lr-solve shielding = PQEq Gaussian erf(a_ij r)/r (param 4th col = Rc (Gaussian radius)); routed through compute_H + add_fixed_charge_field + the legacy gas path (calc_Hval)
+fix_modify      chg energy yes
+
+run             0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+WARNING: For better accuracy use 'pair_modify table 0' (src/kspace.cpp:368)
+  G vector (1/distance) = 0.35
+  grid = 72 90 80
+  stencil order = 5
+  estimated absolute RMS force accuracy = 2.550474e-06
+  estimated relative force accuracy = 1.7712062e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 628366 518400
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+WARNING: samqeq: 2 fixed charged atom(s) lie outside the charge-solve group; their shielded field is coupled into the QEq right-hand side (ionfield ON by default). This supplies the ions' electrostatic field only -- necessary but NOT sufficient (~56% of the QM dipole response at contact; zncl2 RESULTS_R6_P0 s13-14). `fix_modify chg ionfield off` restores the ion-blind solve. (src/SAMQEQ/fix_qeq_sam.cpp:718)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 8 9 9
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, half/full from (5)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: recip_self: probe tag 1 has no partner within the G2 window [0.1, 1.839] A -- the default K=16 probe calibration falls back to the legacy single pair for this group (set `fix_modify chg recip_probes 16` explicitly to make this an error)
+samqeq: recip_self legacy pair = tags 1 (lowest in group) / 576 (nearest, min-image)
+samqeq: calibrated grid reciprocal self-term recip_self=0.39556 (raw) = 5.6959 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 50 iters (=50 matvecs), resid/b=8.15e-09
+Per MPI rank memory allocation (min/avg/max) = 101.3 | 101.3 | 101.3 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -6.6649864      0             -4.9743654     -23.352177    
+Loop time of 7.68e-07 on 1 procs for 0 steps with 2162 atoms
+
+260.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 0          | 0          | 0          |   0.0 |  0.00
+Kspace  | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 7.68e-07   |            |       |100.00
+
+Nlocal:           2162 ave        2162 max        2162 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2652 ave        2652 max        2652 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         386299 ave      386299 max      386299 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       772598 ave      772598 max      772598 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 772598
+Ave neighs/atom = 357.35338
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+write_dump      all custom charges.dump id mol type q x y z modify sort id format line "%d %d %d %.12g %.8f %.8f %.8f"
+variable        peval equal pe
+print           "${peval}" file pe.txt screen no
+Total wall time: 0:00:02

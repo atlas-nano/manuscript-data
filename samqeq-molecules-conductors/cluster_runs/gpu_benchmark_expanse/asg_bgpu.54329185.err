@@ -1,0 +1,12 @@
+/cm/local/apps/slurm/var/spool/job54329185/slurm_script: line 24: 1670594 Terminated              ( while true; do
+    nvidia-smi --query-gpu=index,memory.used --format=csv,noheader >> mem.$tag; sleep 5;
+done )
+/cm/local/apps/slurm/var/spool/job54329185/slurm_script: line 24: 1670696 Terminated              ( while true; do
+    nvidia-smi --query-gpu=index,memory.used --format=csv,noheader >> mem.$tag; sleep 5;
+done )
+/cm/local/apps/slurm/var/spool/job54329185/slurm_script: line 24: 1671091 Terminated              ( while true; do
+    nvidia-smi --query-gpu=index,memory.used --format=csv,noheader >> mem.$tag; sleep 5;
+done )
+/cm/local/apps/slurm/var/spool/job54329185/slurm_script: line 24: 1672004 Terminated              ( while true; do
+    nvidia-smi --query-gpu=index,memory.used --format=csv,noheader >> mem.$tag; sleep 5;
+done )

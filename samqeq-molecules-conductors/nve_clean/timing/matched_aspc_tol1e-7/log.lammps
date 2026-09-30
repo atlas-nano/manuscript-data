@@ -1,0 +1,346 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# referee item 4: NVE of SPC-FQ water, arm matched_aspc_tol1e-7 (run_nve.py)
+units        metal
+atom_style   full
+boundary     p p p
+lattice      sc 3.1
+Lattice spacing in x,y,z = 3.1 3.1 3.1
+region       box block 0 4 0 4 0 4
+create_box   2 box
+Created orthogonal box = (0 0 0) to (12.4 12.4 12.4)
+  1 by 1 by 1 MPI processor grid
+mass         1 15.9994
+mass         2 1.008
+molecule     h2o spcfq.mol
+Read molecule template h2o:
+# SPC-FQ 3-site water: O(type1) + 2H(type2), all charged via samqeq. SPC geom rOH=1.0 theta=109.47.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms 0 box mol h2o 12345
+Created 192 atoms
+  using lattice units in orthogonal box = (0 0 0) to (12.4 12.4 12.4)
+  create_atoms CPU = 0.003 seconds
+group        fq type 1 2
+192 atoms in group fq
+set          type 1 charge -0.85
+Setting atom values ...
+  64 settings made for charge
+set          type 2 charge  0.425
+Setting atom values ...
+  128 settings made for charge
+pair_style   hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 10.0 all
+pair_coeff   1 1 lj/cut 0.01275 3.176
+pair_coeff   1 2 lj/cut 0.0 1.0
+pair_coeff   2 2 lj/cut 0.0 1.0
+pair_coeff   * * coul/long
+pair_coeff   * * coul/shield/intra 1.11
+pair_modify  pair lj/cut shift yes
+kspace_style pppm/samqeq 1.0e-6
+neighbor     2.0 bin
+neigh_modify every 1 delay 0 check yes
+fix          chg fq qeq/sam 1 0.0 10.0 1.0e-7 spcfq_expt.param
+fix_modify   chg energy yes
+fix_modify   chg aspc 2
+samqeq: ASPC q-direct predictor-corrector ON (order k=2, n_corr=2, omega=0.5714, rtol=0.01); fixed-iteration corrector off a time-reversible predictor, accept only if rel-resid<rtol else BO (BO<->XL middle ground, #16)
+compute      dip fq dipole/samqeq
+timestep     0.001
+velocity     all create 298 123456 mom yes rot yes dist gaussian
+fix          integ all rigid/nvt/small molecule temp 298 298 0.1
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  64 rigid bodies with 192 atoms
+  1.0000026 = max distance from body owner to body atom
+thermo_style custom step temp pe etotal c_dip
+thermo       1000
+run          2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.33957131
+  grid = 18 18 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4063135e-05
+  estimated relative force accuracy = 9.7663066e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 15625 5832
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 3 3 3
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, half/full from (5)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.38207 +/- 0.00000 (raw, K=16 deterministic probes) = 5.5016 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 17 iters (=17 matvecs), resid/b=8.79e-08, ASPC acc/rej=0/0
+Per MPI rank memory allocation (min/avg/max) = 24.65 | 24.65 | 24.65 Mbytes
+   Step          Temp          PotEng         TotEng         c_dip     
+         0   295.15635     -45.539089     -40.693791      2.033378     
+WARNING: samqeq ASPC: the capped corrector (n_corr=2) has been above `tolerance` on 100 consecutive accepted steps (last resid/b 1.07e-03): the committed charge keeps (1-omega)=0.43 of the predictor error whatever n_corr is, so this is a property of the predictor (how smoothly q(t) moves), not of the corrector. If Born-Oppenheimer accuracy is required use `aspc off` (~3.5x the matvecs). Warned once. (src/SAMQEQ/fix_qeq_sam_lr.cpp:1982)
+samqeq SOLVER-DIAG step 200: CG 2 iters (=2 matvecs), resid/b=4.28e-04, ASPC acc/rej=196/0
+samqeq ASPC-DIAG step 200: resid/b corrector=4.28e-04 committed=3.42e-04 (omega=0.5714); accepted steps above tolerance 196/196
+samqeq SOLVER-DIAG step 400: CG 2 iters (=2 matvecs), resid/b=6.41e-04, ASPC acc/rej=396/0
+samqeq ASPC-DIAG step 400: resid/b corrector=6.41e-04 committed=4.91e-04 (omega=0.5714); accepted steps above tolerance 396/396
+samqeq SOLVER-DIAG step 600: CG 2 iters (=2 matvecs), resid/b=4.20e-04, ASPC acc/rej=596/0
+samqeq ASPC-DIAG step 600: resid/b corrector=4.20e-04 committed=3.30e-04 (omega=0.5714); accepted steps above tolerance 596/596
+samqeq SOLVER-DIAG step 800: CG 2 iters (=2 matvecs), resid/b=3.87e-04, ASPC acc/rej=796/0
+samqeq ASPC-DIAG step 800: resid/b corrector=3.87e-04 committed=3.22e-04 (omega=0.5714); accepted steps above tolerance 796/796
+samqeq SOLVER-DIAG step 1000: CG 2 iters (=2 matvecs), resid/b=4.83e-04, ASPC acc/rej=996/0
+samqeq ASPC-DIAG step 1000: resid/b corrector=4.83e-04 committed=3.87e-04 (omega=0.5714); accepted steps above tolerance 996/996
+      1000   276.58779     -71.683022     -67.142547      2.8137448    
+samqeq SOLVER-DIAG step 1200: CG 2 iters (=2 matvecs), resid/b=3.91e-04, ASPC acc/rej=1196/0
+samqeq ASPC-DIAG step 1200: resid/b corrector=3.91e-04 committed=3.43e-04 (omega=0.5714); accepted steps above tolerance 1196/1196
+samqeq SOLVER-DIAG step 1400: CG 2 iters (=2 matvecs), resid/b=6.76e-04, ASPC acc/rej=1396/0
+samqeq ASPC-DIAG step 1400: resid/b corrector=6.76e-04 committed=5.27e-04 (omega=0.5714); accepted steps above tolerance 1396/1396
+samqeq SOLVER-DIAG step 1600: CG 2 iters (=2 matvecs), resid/b=4.47e-04, ASPC acc/rej=1596/0
+samqeq ASPC-DIAG step 1600: resid/b corrector=4.47e-04 committed=3.40e-04 (omega=0.5714); accepted steps above tolerance 1596/1596
+samqeq SOLVER-DIAG step 1800: CG 2 iters (=2 matvecs), resid/b=4.30e-04, ASPC acc/rej=1796/0
+samqeq ASPC-DIAG step 1800: resid/b corrector=4.30e-04 committed=3.75e-04 (omega=0.5714); accepted steps above tolerance 1796/1796
+samqeq SOLVER-DIAG step 2000: CG 2 iters (=2 matvecs), resid/b=3.48e-04, ASPC acc/rej=1996/0
+samqeq ASPC-DIAG step 2000: resid/b corrector=3.48e-04 committed=3.13e-04 (omega=0.5714); accepted steps above tolerance 1996/1996
+      2000   313.58453     -71.299623     -66.151808      2.7907106    
+Loop time of 19.2156 on 1 procs for 2000 steps with 192 atoms
+
+Performance: 8.993 ns/day, 2.669 hours/ns, 104.082 timesteps/s, 19.984 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 7.8781     | 7.8781     | 7.8781     |   0.0 | 41.00
+Bond    | 0.00046632 | 0.00046632 | 0.00046632 |   0.0 |  0.00
+Kspace  | 1.2318     | 1.2318     | 1.2318     |   0.0 |  6.41
+Neigh   | 0.38602    | 0.38602    | 0.38602    |   0.0 |  2.01
+Comm    | 0.059416   | 0.059416   | 0.059416   |   0.0 |  0.31
+Output  | 5.5508e-05 | 5.5508e-05 | 5.5508e-05 |   0.0 |  0.00
+Modify  | 9.6469     | 9.6469     | 9.6469     |   0.0 | 50.20
+Other   |            | 0.01276    |            |       |  0.07
+
+Nlocal:            192 ave         192 max         192 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4596 ave        4596 max        4596 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          69633 ave       69633 max       69633 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       139266 ave      139266 max      139266 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 139266
+Ave neighs/atom = 725.34375
+Ave special neighs/atom = 0
+Neighbor list builds = 82
+Dangerous builds = 0
+unfix        integ
+reset_timestep 0
+fix          integ all rigid/nve/small molecule
+Fix rigid/nve/small setup ...
+  create bodies CPU = 0.000 seconds
+  64 rigid bodies with 192 atoms
+  1.0000026 = max distance from body owner to body atom
+thermo       100
+run          5000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.34576306
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.2663432e-05
+  estimated relative force accuracy = 8.7942666e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 24389 8000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+samqeq: recip_self ACTIVE at run start (step 0): 0.38207 raw = 5.5016 eV/e, K=16 deterministic-probe route, calibration #1 at step 0 on the 18x18x18 mesh; first at this mesh 0.38207 (step 0), drift +0.000%
+samqeq: calibrated grid reciprocal self-term recip_self=0.38906 +/- 0.00000 (raw, K=16 deterministic probes) = 5.6023 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 2 iters (=2 matvecs), resid/b=1.18e-03, ASPC acc/rej=1997/0
+samqeq ASPC-DIAG step 0: resid/b corrector=1.18e-03 committed=1.60e-03 (omega=0.5714); accepted steps above tolerance 0/1997
+Per MPI rank memory allocation (min/avg/max) = 25.19 | 25.19 | 25.19 Mbytes
+   Step          Temp          PotEng         TotEng         c_dip     
+         0   313.58453     -71.298204     -66.150388      2.7904708    
+WARNING: samqeq ASPC: the capped corrector (n_corr=2) has been above `tolerance` on 100 consecutive accepted steps (last resid/b 4.62e-04): the committed charge keeps (1-omega)=0.43 of the predictor error whatever n_corr is, so this is a property of the predictor (how smoothly q(t) moves), not of the corrector. If Born-Oppenheimer accuracy is required use `aspc off` (~3.5x the matvecs). Warned once. (src/SAMQEQ/fix_qeq_sam_lr.cpp:1982)
+       100   327.91433     -71.522447     -66.139393      2.8028281    
+samqeq SOLVER-DIAG step 200: CG 2 iters (=2 matvecs), resid/b=5.97e-04, ASPC acc/rej=2197/0
+samqeq ASPC-DIAG step 200: resid/b corrector=5.97e-04 committed=4.82e-04 (omega=0.5714); accepted steps above tolerance 200/2197
+       200   289.6835      -70.889966     -66.13451       2.7615482    
+       300   295.84278     -70.999457     -66.142891      2.787979     
+samqeq SOLVER-DIAG step 400: CG 2 iters (=2 matvecs), resid/b=4.54e-04, ASPC acc/rej=2397/0
+samqeq ASPC-DIAG step 400: resid/b corrector=4.54e-04 committed=3.45e-04 (omega=0.5714); accepted steps above tolerance 400/2397
+       400   271.5615      -70.585031     -66.127067      2.7740842    
+       500   303.95119     -71.119195     -66.129521      2.7595694    
+samqeq SOLVER-DIAG step 600: CG 2 iters (=2 matvecs), resid/b=4.33e-04, ASPC acc/rej=2597/0
+samqeq ASPC-DIAG step 600: resid/b corrector=4.33e-04 committed=3.43e-04 (omega=0.5714); accepted steps above tolerance 600/2597
+       600   289.9727      -70.880981     -66.120778      2.7684149    
+       700   288.78387     -70.888014     -66.147327      2.7960237    
+samqeq SOLVER-DIAG step 800: CG 2 iters (=2 matvecs), resid/b=3.79e-04, ASPC acc/rej=2797/0
+samqeq ASPC-DIAG step 800: resid/b corrector=3.79e-04 committed=3.08e-04 (omega=0.5714); accepted steps above tolerance 800/2797
+       800   306.19771     -71.163575     -66.137022      2.7627272    
+       900   336.77307     -71.702891     -66.174411      2.8072126    
+samqeq SOLVER-DIAG step 1000: CG 2 iters (=2 matvecs), resid/b=3.85e-04, ASPC acc/rej=2997/0
+samqeq ASPC-DIAG step 1000: resid/b corrector=3.85e-04 committed=3.89e-04 (omega=0.5714); accepted steps above tolerance 1000/2997
+      1000   325.2911      -71.481801     -66.14181       2.7798902    
+      1100   315.3006      -71.348197     -66.17221       2.7908243    
+samqeq SOLVER-DIAG step 1200: CG 2 iters (=2 matvecs), resid/b=5.39e-04, ASPC acc/rej=3197/0
+samqeq ASPC-DIAG step 1200: resid/b corrector=5.39e-04 committed=4.18e-04 (omega=0.5714); accepted steps above tolerance 1200/3197
+      1200   305.38582     -71.165385     -66.152159      2.7627294    
+      1300   340.71624     -71.774055     -66.180845      2.823906     
+samqeq SOLVER-DIAG step 1400: CG 2 iters (=2 matvecs), resid/b=5.41e-04, ASPC acc/rej=3397/0
+samqeq ASPC-DIAG step 1400: resid/b corrector=5.41e-04 committed=5.43e-04 (omega=0.5714); accepted steps above tolerance 1400/3397
+      1400   333.51893     -71.673909     -66.19885       2.8435427    
+      1500   328.27818     -71.527969     -66.138942      2.741138     
+samqeq SOLVER-DIAG step 1600: CG 2 iters (=2 matvecs), resid/b=7.02e-04, ASPC acc/rej=3597/0
+samqeq ASPC-DIAG step 1600: resid/b corrector=7.02e-04 committed=5.22e-04 (omega=0.5714); accepted steps above tolerance 1600/3597
+      1600   312.97962     -71.281306     -66.143421      2.7351991    
+      1700   327.49303     -71.533842     -66.157703      2.7662418    
+samqeq SOLVER-DIAG step 1800: CG 2 iters (=2 matvecs), resid/b=3.40e-04, ASPC acc/rej=3797/0
+samqeq ASPC-DIAG step 1800: resid/b corrector=3.40e-04 committed=2.74e-04 (omega=0.5714); accepted steps above tolerance 1800/3797
+      1800   307.7312      -71.194991     -66.143264      2.7713477    
+      1900   345.03608     -71.82491      -66.160785      2.8126244    
+samqeq SOLVER-DIAG step 2000: CG 2 iters (=2 matvecs), resid/b=4.04e-04, ASPC acc/rej=3997/0
+samqeq ASPC-DIAG step 2000: resid/b corrector=4.04e-04 committed=3.73e-04 (omega=0.5714); accepted steps above tolerance 2000/3997
+      2000   328.44106     -71.548811     -66.15711       2.7770043    
+      2100   326.27645     -71.505399     -66.149232      2.7640987    
+samqeq SOLVER-DIAG step 2200: CG 2 iters (=2 matvecs), resid/b=4.62e-04, ASPC acc/rej=4197/0
+samqeq ASPC-DIAG step 2200: resid/b corrector=4.62e-04 committed=4.10e-04 (omega=0.5714); accepted steps above tolerance 2200/4197
+      2200   323.11894     -71.46675      -66.162417      2.7573848    
+      2300   308.12336     -71.219472     -66.161307      2.7645071    
+samqeq SOLVER-DIAG step 2400: CG 2 iters (=2 matvecs), resid/b=3.88e-04, ASPC acc/rej=4397/0
+samqeq ASPC-DIAG step 2400: resid/b corrector=3.88e-04 committed=3.15e-04 (omega=0.5714); accepted steps above tolerance 2400/4397
+      2400   310.84508     -71.263835     -66.160991      2.7505202    
+      2500   290.68162     -70.932378     -66.160537      2.7464771    
+samqeq SOLVER-DIAG step 2600: CG 2 iters (=2 matvecs), resid/b=5.15e-04, ASPC acc/rej=4597/0
+samqeq ASPC-DIAG step 2600: resid/b corrector=5.15e-04 committed=4.04e-04 (omega=0.5714); accepted steps above tolerance 2600/4597
+      2600   327.2814      -71.54171      -66.169046      2.7774578    
+      2700   283.95876     -70.842024     -66.180546      2.7810057    
+samqeq SOLVER-DIAG step 2800: CG 2 iters (=2 matvecs), resid/b=3.51e-04, ASPC acc/rej=4797/0
+samqeq ASPC-DIAG step 2800: resid/b corrector=3.51e-04 committed=3.20e-04 (omega=0.5714); accepted steps above tolerance 2800/4797
+      2800   296.65824     -71.067385     -66.197432      2.8112325    
+      2900   338.44516     -71.769776     -66.213847      2.8285741    
+samqeq SOLVER-DIAG step 3000: CG 2 iters (=2 matvecs), resid/b=2.74e-04, ASPC acc/rej=4997/0
+samqeq ASPC-DIAG step 3000: resid/b corrector=2.74e-04 committed=3.40e-04 (omega=0.5714); accepted steps above tolerance 3000/4997
+      3000   346.41623     -71.902288     -66.215506      2.8535024    
+      3100   341.59236     -71.798817     -66.191223      2.8084969    
+samqeq SOLVER-DIAG step 3200: CG 2 iters (=2 matvecs), resid/b=4.89e-04, ASPC acc/rej=5197/0
+samqeq ASPC-DIAG step 3200: resid/b corrector=4.89e-04 committed=3.99e-04 (omega=0.5714); accepted steps above tolerance 3200/5197
+      3200   334.83967     -71.684114     -66.187373      2.7880113    
+      3300   322.00482     -71.470193     -66.184149      2.7873276    
+samqeq SOLVER-DIAG step 3400: CG 2 iters (=2 matvecs), resid/b=4.21e-04, ASPC acc/rej=5397/0
+samqeq ASPC-DIAG step 3400: resid/b corrector=4.21e-04 committed=3.65e-04 (omega=0.5714); accepted steps above tolerance 3400/5397
+      3400   317.10243     -71.394978     -66.189412      2.7750789    
+      3500   347.4568      -71.918072     -66.214208      2.8161088    
+samqeq SOLVER-DIAG step 3600: CG 2 iters (=2 matvecs), resid/b=5.35e-04, ASPC acc/rej=5597/0
+samqeq ASPC-DIAG step 3600: resid/b corrector=5.35e-04 committed=4.36e-04 (omega=0.5714); accepted steps above tolerance 3600/5597
+      3600   354.90777     -72.057407     -66.231227      2.8699666    
+      3700   329.52277     -71.628436     -66.218977      2.8316383    
+samqeq SOLVER-DIAG step 3800: CG 2 iters (=2 matvecs), resid/b=4.17e-04, ASPC acc/rej=5797/0
+samqeq ASPC-DIAG step 3800: resid/b corrector=4.17e-04 committed=4.34e-04 (omega=0.5714); accepted steps above tolerance 3800/5797
+      3800   308.5468      -71.254937     -66.189821      2.764826     
+      3900   330.49222     -71.633451     -66.208078      2.7890045    
+samqeq SOLVER-DIAG step 4000: CG 2 iters (=2 matvecs), resid/b=3.43e-04, ASPC acc/rej=5997/0
+samqeq ASPC-DIAG step 4000: resid/b corrector=3.43e-04 committed=3.71e-04 (omega=0.5714); accepted steps above tolerance 4000/5997
+      4000   324.52131     -71.557889     -66.230535      2.8179787    
+      4100   298.53357     -71.129481     -66.228742      2.8318645    
+samqeq SOLVER-DIAG step 4200: CG 2 iters (=2 matvecs), resid/b=4.19e-04, ASPC acc/rej=6197/0
+samqeq ASPC-DIAG step 4200: resid/b corrector=4.19e-04 committed=4.21e-04 (omega=0.5714); accepted steps above tolerance 4200/6197
+      4200   322.81511     -71.536052     -66.236707      2.8668746    
+      4300   336.54522     -71.750311     -66.225572      2.8014565    
+samqeq SOLVER-DIAG step 4400: CG 2 iters (=2 matvecs), resid/b=2.84e-04, ASPC acc/rej=6397/0
+samqeq ASPC-DIAG step 4400: resid/b corrector=2.84e-04 committed=3.11e-04 (omega=0.5714); accepted steps above tolerance 4400/6397
+      4400   299.58483     -71.149336     -66.23134       2.8213344    
+      4500   305.52307     -71.244787     -66.229308      2.8038128    
+samqeq SOLVER-DIAG step 4600: CG 2 iters (=2 matvecs), resid/b=5.01e-04, ASPC acc/rej=6597/0
+samqeq ASPC-DIAG step 4600: resid/b corrector=5.01e-04 committed=4.09e-04 (omega=0.5714); accepted steps above tolerance 4600/6597
+      4600   311.54738     -71.359414     -66.24504       2.8077363    
+      4700   328.17361     -71.617331     -66.23002       2.7750024    
+samqeq SOLVER-DIAG step 4800: CG 2 iters (=2 matvecs), resid/b=3.86e-04, ASPC acc/rej=6797/0
+samqeq ASPC-DIAG step 4800: resid/b corrector=3.86e-04 committed=3.09e-04 (omega=0.5714); accepted steps above tolerance 4800/6797
+      4800   278.55662     -70.764993     -66.192197      2.7163933    
+      4900   302.2527      -71.177052     -66.21526       2.7778711    
+samqeq SOLVER-DIAG step 5000: CG 2 iters (=2 matvecs), resid/b=2.30e-04, ASPC acc/rej=6997/0
+samqeq ASPC-DIAG step 5000: resid/b corrector=2.30e-04 committed=2.41e-04 (omega=0.5714); accepted steps above tolerance 5000/6997
+      5000   313.82095     -71.377496     -66.225799      2.7830666    
+Loop time of 46.075 on 1 procs for 5000 steps with 192 atoms
+
+Performance: 9.376 ns/day, 2.560 hours/ns, 108.519 timesteps/s, 20.836 katom-step/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 19.049     | 19.049     | 19.049     |   0.0 | 41.34
+Bond    | 0.0011371  | 0.0011371  | 0.0011371  |   0.0 |  0.00
+Kspace  | 2.8752     | 2.8752     | 2.8752     |   0.0 |  6.24
+Neigh   | 0.84409    | 0.84409    | 0.84409    |   0.0 |  1.83
+Comm    | 0.13331    | 0.13331    | 0.13331    |   0.0 |  0.29
+Output  | 0.001512   | 0.001512   | 0.001512   |   0.0 |  0.00
+Modify  | 23.13      | 23.13      | 23.13      |   0.0 | 50.20
+Other   |            | 0.0403     |            |       |  0.09
+
+Nlocal:            192 ave         192 max         192 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4662 ave        4662 max        4662 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          69702 ave       69702 max       69702 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       139404 ave      139404 max      139404 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 139404
+Ave neighs/atom = 726.0625
+Ave special neighs/atom = 0
+Neighbor list builds = 185
+Dangerous builds = 0
+print        "NVE_DONE" file done.txt screen no
+Total wall time: 0:01:05

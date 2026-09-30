@@ -1,0 +1,271 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# referee item 4: NVE of SPC-FQ water, arm matched_xl_tol1e-7 (run_nve.py)
+units        metal
+atom_style   full
+boundary     p p p
+lattice      sc 3.1
+Lattice spacing in x,y,z = 3.1 3.1 3.1
+region       box block 0 4 0 4 0 4
+create_box   2 box
+Created orthogonal box = (0 0 0) to (12.4 12.4 12.4)
+  1 by 1 by 1 MPI processor grid
+mass         1 15.9994
+mass         2 1.008
+molecule     h2o spcfq.mol
+Read molecule template h2o:
+# SPC-FQ 3-site water: O(type1) + 2H(type2), all charged via samqeq. SPC geom rOH=1.0 theta=109.47.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms 0 box mol h2o 12345
+Created 192 atoms
+  using lattice units in orthogonal box = (0 0 0) to (12.4 12.4 12.4)
+  create_atoms CPU = 0.002 seconds
+group        fq type 1 2
+192 atoms in group fq
+set          type 1 charge -0.85
+Setting atom values ...
+  64 settings made for charge
+set          type 2 charge  0.425
+Setting atom values ...
+  128 settings made for charge
+pair_style   hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 10.0 all
+pair_coeff   1 1 lj/cut 0.01275 3.176
+pair_coeff   1 2 lj/cut 0.0 1.0
+pair_coeff   2 2 lj/cut 0.0 1.0
+pair_coeff   * * coul/long
+pair_coeff   * * coul/shield/intra 1.11
+pair_modify  pair lj/cut shift yes
+kspace_style pppm/samqeq 1.0e-6
+neighbor     2.0 bin
+neigh_modify every 1 delay 0 check yes
+fix          chg fq qeq/sam 1 0.0 10.0 1.0e-7 spcfq_expt.param
+fix_modify   chg energy yes
+fix_modify   chg xl 5.0e-5 0.5
+samqeq: extended-Lagrangian charge dynamics ON (q_mass=5e-05 eV ps^2/e^2, q_tdamp=0.5 ps); pure friction (T_q=0); charges propagate by velocity-Verlet (no per-step solve)
+compute      dip fq dipole/samqeq
+timestep     0.001
+velocity     all create 298 123456 mom yes rot yes dist gaussian
+fix          integ all rigid/nvt/small molecule temp 298 298 0.1
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  64 rigid bodies with 192 atoms
+  1.0000026 = max distance from body owner to body atom
+thermo_style custom step temp pe etotal c_dip
+thermo       1000
+run          2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.33957131
+  grid = 18 18 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4063135e-05
+  estimated relative force accuracy = 9.7663066e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 15625 5832
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 3 3 3
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, half/full from (5)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+Per MPI rank memory allocation (min/avg/max) = 24.65 | 24.65 | 24.65 Mbytes
+   Step          Temp          PotEng         TotEng         c_dip     
+         0   295.15635     -40.677919     -35.832621      2.3571607    
+samqeq: calibrated grid reciprocal self-term recip_self=0.38207 +/- 0.00001 (raw, K=16 deterministic probes) = 5.5016 eV/e (subtracted so the QEq diagonal stays = eta)
+      1000   315.65822     -70.734876     -65.553018      2.7723074    
+      2000   320.95435     -70.32573      -65.056931      2.7064274    
+Loop time of 18.3165 on 1 procs for 2000 steps with 192 atoms
+
+Performance: 9.434 ns/day, 2.544 hours/ns, 109.191 timesteps/s, 20.965 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 7.934      | 7.934      | 7.934      |   0.0 | 43.32
+Bond    | 0.0005014  | 0.0005014  | 0.0005014  |   0.0 |  0.00
+Kspace  | 1.2755     | 1.2755     | 1.2755     |   0.0 |  6.96
+Neigh   | 0.35674    | 0.35674    | 0.35674    |   0.0 |  1.95
+Comm    | 0.050057   | 0.050057   | 0.050057   |   0.0 |  0.27
+Output  | 6.1363e-05 | 6.1363e-05 | 6.1363e-05 |   0.0 |  0.00
+Modify  | 8.6813     | 8.6813     | 8.6813     |   0.0 | 47.40
+Other   |            | 0.01838    |            |       |  0.10
+
+Nlocal:            192 ave         192 max         192 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4599 ave        4599 max        4599 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          69669 ave       69669 max       69669 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       139338 ave      139338 max      139338 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 139338
+Ave neighs/atom = 725.71875
+Ave special neighs/atom = 0
+Neighbor list builds = 80
+Dangerous builds = 0
+unfix        integ
+reset_timestep 0
+fix          integ all rigid/nve/small molecule
+Fix rigid/nve/small setup ...
+  create bodies CPU = 0.000 seconds
+  64 rigid bodies with 192 atoms
+  1.0000026 = max distance from body owner to body atom
+thermo       100
+run          5000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.34549475
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.2137358e-05
+  estimated relative force accuracy = 8.4289287e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 24389 8000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+samqeq: recip_self ACTIVE at run start (step 0): 0.38207 raw = 5.5016 eV/e, K=16 deterministic-probe route, calibration #1 at step 1 on the 18x18x18 mesh; first at this mesh 0.38207 (step 1), drift +0.000%
+Per MPI rank memory allocation (min/avg/max) = 25.19 | 25.19 | 25.19 Mbytes
+   Step          Temp          PotEng         TotEng         c_dip     
+         0   320.95435     -70.325722     -65.056923      2.7064274    
+samqeq: calibrated grid reciprocal self-term recip_self=0.38875 +/- 0.00001 (raw, K=16 deterministic probes) = 5.5979 eV/e (subtracted so the QEq diagonal stays = eta)
+       100   303.85035     -70.552614     -65.564595      2.7089585    
+       200   290.05849     -70.517951     -65.756339      2.7697348    
+       300   298.25916     -70.842687     -65.946453      2.7771893    
+       400   304.48524     -71.157175     -66.158734      2.8062982    
+       500   259.2803      -70.450066     -66.193711      2.6912941    
+       600   273.18566     -71.028979     -66.544353      2.817114     
+       700   279.28512     -71.422127     -66.837372      2.8583489    
+       800   268.41571     -71.495842     -67.08952       2.8015277    
+       900   240.55198     -71.436605     -67.487694      2.7907624    
+      1000   265.80474     -72.095309     -67.731848      2.8873392    
+      1100   286.72778     -72.631396     -67.924462      2.9091344    
+      1200   265.42077     -72.478467     -68.121309      2.9154004    
+      1300   248.32785     -72.383155     -68.306595      2.8174182    
+      1400   223.54867     -72.296821     -68.627038      2.8092908    
+      1500   252.72188     -73.011221     -68.862529      2.8876933    
+      1600   252.6081      -73.274327     -69.127503      2.9226331    
+      1700   247.39319     -73.345229     -69.284013      2.9642932    
+      1800   232.85619     -73.361753     -69.539177      2.953709     
+      1900   238.12835     -73.636552     -69.727428      2.9459623    
+      2000   232.29531     -73.702204     -69.888836      2.9331343    
+      2100   233.96414     -74.062457     -70.221693      3.0131875    
+      2200   231.13794     -74.089452     -70.295083      2.9284444    
+      2300   224.41107     -74.230277     -70.546336      2.9726792    
+      2400   211.01096     -74.127259     -70.663294      2.9555663    
+      2500   217.23695     -74.583207     -71.017036      3.0549564    
+      2600   228.64725     -74.878007     -71.124525      3.0495259    
+      2700   219.7862      -74.920787     -71.312768      2.999373     
+      2800   192.07614     -74.687856     -71.534727      3.0067762    
+      2900   206.55785     -75.024312     -71.63345       3.0318937    
+      3000   207.17983     -75.267704     -71.866632      3.0471261    
+      3100   221.48524     -75.468624     -71.832714      2.9648406    
+      3200   200.08397     -75.58016      -72.295574      3.0788773    
+      3300   185.63969     -75.429439     -72.381971      3.1390993    
+      3400   187.51682     -75.621227     -72.542944      3.0303957    
+      3500   184.22798     -75.74358      -72.719287      3.0986152    
+      3600   189.12259     -75.972387     -72.867743      3.0907232    
+      3700   204.31158     -76.398921     -73.044935      3.1281148    
+      3800   199.50617     -76.509165     -73.234064      3.1875228    
+      3900   214.82137     -76.77127      -73.244754      3.1330903    
+      4000   197.33277     -76.692756     -73.453334      3.1815834    
+      4100   179.46257     -76.51759      -73.571525      3.1608027    
+      4200   190.6985      -76.928846     -73.798332      3.2539025    
+      4300   173.24993     -76.640343     -73.796266      3.1516314    
+      4400   164.08893     -76.621916     -73.928226      3.1696701    
+      4500   155.16776     -76.610668     -74.063428      3.1543845    
+      4600   180.32277     -77.283415     -74.323229      3.2472879    
+      4700   173.7511      -77.196035     -74.34373       3.2206556    
+      4800   175.04973     -77.368341     -74.494718      3.1971361    
+      4900   160.62793     -77.319809     -74.682934      3.2548036    
+      5000   156.96057     -77.304174     -74.727503      3.2372972    
+Loop time of 44.3914 on 1 procs for 5000 steps with 192 atoms
+
+Performance: 9.732 ns/day, 2.466 hours/ns, 112.635 timesteps/s, 21.626 katom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 19.468     | 19.468     | 19.468     |   0.0 | 43.85
+Bond    | 0.0012388  | 0.0012388  | 0.0012388  |   0.0 |  0.00
+Kspace  | 2.8639     | 2.8639     | 2.8639     |   0.0 |  6.45
+Neigh   | 0.54179    | 0.54179    | 0.54179    |   0.0 |  1.22
+Comm    | 0.1313     | 0.1313     | 0.1313     |   0.0 |  0.30
+Output  | 0.0015676  | 0.0015676  | 0.0015676  |   0.0 |  0.00
+Modify  | 21.329     | 21.329     | 21.329     |   0.0 | 48.05
+Other   |            | 0.05527    |            |       |  0.12
+
+Nlocal:            192 ave         192 max         192 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4662 ave        4662 max        4662 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          69735 ave       69735 max       69735 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       139470 ave      139470 max      139470 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 139470
+Ave neighs/atom = 726.40625
+Ave special neighs/atom = 0
+Neighbor list builds = 114
+Dangerous builds = 0
+print        "NVE_DONE" file done.txt screen no
+Total wall time: 0:01:02

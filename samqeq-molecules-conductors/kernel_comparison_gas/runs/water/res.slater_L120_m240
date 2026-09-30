@@ -1,0 +1,1 @@
+RESULT_R2 kernel=slater L=120 qM=-0.889773 qH1=0.444887 qH2=0.444887 mu_D=1.863361 pe=-4.538836 ecoul=-7.966230 elong=-3.337313 fchg=6.764708 evdwl=0.000000  |  samqeq SOLVER-DIAG step 0: CG 3 iters (=3 matvecs), resid/b=2.46e-17  |  bin=1789612190:481203488

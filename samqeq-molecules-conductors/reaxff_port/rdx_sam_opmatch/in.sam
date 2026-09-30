@@ -1,0 +1,21 @@
+# Reference: stock ReaxFF RDX (LAMMPS examples/reaxff), single point, fix qeq/reaxff at a tight tolerance.
+units           real
+atom_style      charge
+read_data       ../data.rdx
+pair_style      hybrid/overlay reaxff ../control.reax_c.rdx checkqeq no coul/long 10.0
+pair_coeff      * * reaxff ../ffield.reax C H O N
+pair_coeff      * * coul/long
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30   # data file is uncharged; the taper-cutoff solve never uses g_ewald
+neighbor        2.5 bin
+neigh_modify    every 10 delay 0 check no
+fix             chg all qeq/sam 1 0.0 10.0 1.0e-10 ../rdx_sam_opmatch.param
+fix_modify      chg cutoff on
+compute         reax all pair reaxff
+variable        ereax equal c_reax
+variable        eqeq equal c_reax[14]
+thermo_style    custom step pe v_eqeq
+thermo_modify   format float %.10f
+run             0
+print           "ereax ${ereax} eqeq ${eqeq}" file energies.txt screen no
+write_dump      all custom charges.dump id type q modify sort id format line "%d %d %.15g"

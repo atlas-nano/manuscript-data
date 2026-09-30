@@ -1,0 +1,229 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-553-gc8348c2a23-modified)
+KOKKOS mode with Kokkos version 5.1.99 is enabled
+  using double precision
+  using view layout = legacy
+  will use up to 4 GPU(s) per node
+  using 1 OpenMP thread(s) per MPI task
+package kokkos
+package kokkos newton on neigh half
+# samQEq host-vs-device throughput benchmark: native SPC-FQ water (paper Section sec:water),
+# base.data (512 molecules, equilibrated by in.equil) replicated REP^3 times.
+#   -var REP n      replication per axis (2 -> 12,288 atoms; 4 -> 98,304; 6 -> 331,776; 8 -> 786,432)
+#   -var NSTEP n    timed steps
+#   -var DEV 0|1    1 = `fix_modify chg devsolve on` (KOKKOS binary only; the device charge solve)
+#   -var ASPC 0|1   1 = `fix_modify chg aspc 2` (predictor-corrector); 0 = full solve every step
+#   -var DUMP 0|1   1 = write per-atom charges at step 0 and at the last step (agreement check)
+#   -var TAG s      label for the dump files
+variable        REP   index 2
+variable        NSTEP index 200
+variable        DEV   index 0
+variable        ASPC  index 0
+variable        DUMP  index 0
+variable        TAG   index run
+units           metal
+atom_style      full
+boundary        p p p
+special_bonds   lj/coul 1.0 1.0 1.0
+read_data       base.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1536 atoms
+  reading velocities ...
+  1536 velocities
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  1024 bonds
+  reading angles ...
+  512 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.029 seconds
+replicate       ${REP} ${REP} ${REP}
+replicate       4 ${REP} ${REP}
+replicate       4 4 ${REP}
+replicate       4 4 4
+Replication is creating a 4x4x4 = 64 times larger system...
+  orthogonal box = (0 0 0) to (99.2 99.2 99.2)
+  1 by 2 by 2 MPI processor grid
+  98304 atoms
+  65536 bonds
+  32768 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.006 seconds
+  replicate CPU = 0.021 seconds
+bond_style      zero
+bond_coeff      1 1.0
+angle_style     zero
+angle_coeff     1 109.47
+group           fq type 1 2
+98304 atoms in group fq
+pair_style      hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 5.0 all
+pair_coeff      1 1 lj/cut 0.01275 3.144
+pair_coeff      1 2 lj/cut 0.0 1.0
+pair_coeff      2 2 lj/cut 0.0 1.0
+pair_coeff      * * coul/long
+pair_coeff      * * coul/shield/intra 1.11
+kspace_style    pppm/samqeq 1.0e-6
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+fix             chg fq qeq/sam 1 0.0 10.0 1.0e-5 spcfq_expt.param
+if "${DEV} == 1" then "fix_modify chg devsolve on"
+fix_modify chg devsolve on
+samqeq/kk: S6 device solve ENABLED (engages on lr_ewald=0 + default gate)
+if "${ASPC} == 1" then "fix_modify chg aspc 2"
+fix             shk all shake 1.0e-4 100 0 b 1 a 1
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+   32768 = # of frozen angles
+  find clusters CPU = 0.009 seconds
+velocity        all create 298.0 4928459 mom yes rot yes dist gaussian loop geom
+timestep        0.001
+fix             nvt all nvt temp 298.0 298.0 0.1
+thermo_style    custom step temp press pe etotal
+thermo          50
+if "${DUMP} == 1" then "dump qd all custom ${NSTEP} q_${TAG}.dump id q" "dump_modify qd sort id format float %.12g"
+run             ${NSTEP}
+run             200
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- KOKKOS package: https://doi.org/10.1145/3731599.3767498
+
+@inproceedings{Johansson25,
+ author = {A. Johansson and E. Weinberg and C. Trott and M. McCarthy and S. Moore},
+ title = {{LAMMPS-KOKKOS}: {P}erformance Portable Molecular Dynamics Across Exascale Architectures},
+ year = 2025,
+ booktitle = {Proceedings of the SC '25 Workshops of the International Conference for High Performance Computing,
+  Networking, Storage and Analysis},
+ pages = {1217–1232},
+}
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM Kokkos initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.34669431
+  grid = 160 160 160
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.5552871e-05
+  estimated relative force accuracy = 1.0800871e-06
+  using double precision cuFFT
+  3d grid and FFT values/proc = 1338649 1024000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0 - redox_dp) -- pe + E_self is the energy the forces integrate
+samqeq: long-range EWALD (reciprocal-in-matvec) on (alpha=g_ewald=0.3467, swb=10.00); pair MUST be lj/cut/coul/long + kspace pppm/samqeq
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 12, bins = 9 9 9
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, copy from (2)
+      attributes: half, newton on, kokkos_device, cut 12
+      pair build: copy/kk/device
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, half/full from (5)
+      attributes: half, newton on, kokkos_device, cut 12
+      pair build: halffull/newton/kk/device
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on, kokkos_device
+      pair build: copy/kk/device
+      stencil: none
+      bin: none
+  (4) fix qeq/sam/kk, perpetual, half/full from (5)
+      attributes: half, newton off, kokkos_device
+      pair build: halffull/newtoff/kk/device
+      stencil: none
+      bin: none
+  (5) fix qeq/sam/kk, perpetual
+      attributes: full, newton on, kokkos_device
+      pair build: full/bin/kk/device
+      stencil: full/bin/3d
+      bin: kk/device
+WARNING: Fix qeq/sam/kk not compatible with sending data in Kokkos communication (src/KOKKOS/comm_kokkos.cpp:934)
+WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to legacy exchange/border communication (src/KOKKOS/comm_kokkos.cpp:941)
+WARNING: Fix qeq/sam/kk not (yet) compatible with Kokkos sorting on device (src/KOKKOS/atom_kokkos.cpp:303)
+WARNING: Fix with atom-based arrays not (yet) compatible with Kokkos sorting on device, switching to legacy host sorting (src/KOKKOS/atom_kokkos.cpp:309)
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.39120 +/- 0.00000 (raw, K=16 deterministic probes) = 5.6331 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq/kk: stored-H device matvec active (24576 x 925 slots, 0.17 GB) — the pair kernels are evaluated once per solve instead of once per CG iteration
+samqeq/kk S7 device project_neutral: max|P_dev - P_host| = 0.000e+00 (default non-CONP path; ~0 => primitive correct)
+samqeq/kk S8 device qeq_matvec (q-direct): max|M_dev - M_host| = 1.421e-14 (eta+H+recip+project; ~0 => operator correct)
+samqeq SOLVER-DIAG step 0: CG 15 iters (=15 matvecs), resid/b=3.99e-06
+samqeq/kk S9 device q-direct CG: host 15 iters / device 15 iters, max|x_dev - x_host| = 6.870e-16 (~tol => CG correct)
+Per MPI rank memory allocation (min/avg/max) = 489.1 | 489.1 | 489.1 Mbytes
+   Step          Temp          Press          PotEng         TotEng    
+         0   298           -1794.1575     -39045.366     -36520.989    
+        50   249.98259     -4157.6421     -39439.046     -37321.428    
+       100   264.47143     -2905.1064     -39510.914     -37270.56     
+       150   271.32524     -2059.2789     -39505.904     -37207.491    
+       200   274.50867     -1551.613      -39474.396     -37149.015    
+Loop time of 31.9056 on 4 procs for 200 steps with 98304 atoms
+
+Performance: 0.542 ns/day, 44.313 hours/ns, 6.269 timesteps/s, 616.219 katom-step/s
+96.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.20539    | 0.20721    | 0.20873    |   0.3 |  0.65
+Bond    | 0.38978    | 0.39239    | 0.39812    |   0.5 |  1.23
+Kspace  | 1.9442     | 1.9513     | 1.9559     |   0.3 |  6.12
+Neigh   | 0.17778    | 0.1783     | 0.17855    |   0.1 |  0.56
+Comm    | 0.24835    | 0.24947    | 0.2512     |   0.2 |  0.78
+Output  | 0.0015655  | 0.0016572  | 0.0017517  |   0.2 |  0.01
+Modify  | 28.889     | 28.893     | 28.897     |   0.1 | 90.56
+Other   |            | 0.03185    |            |       |  0.10
+
+Nlocal:          24576 ave       24611 max       24541 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:        42768.8 ave       42813 max       42699 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Neighs:    8.94576e+06 ave 8.96211e+06 max 8.92596e+06 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+FullNghs:  1.78915e+07 ave 1.79259e+07 max 1.78533e+07 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+
+Total # of neighbors = 71566054
+Ave neighs/atom = 728.00755
+Ave special neighs/atom = 1.3333333
+Neighbor list builds = 10
+Dangerous builds = 0
+print           "BENCH_DONE REP=${REP} NSTEP=${NSTEP} DEV=${DEV} ASPC=${ASPC} natoms=$(atoms)"
+BENCH_DONE REP=4 NSTEP=200 DEV=1 ASPC=0 natoms=98304
+Total wall time: 0:00:35

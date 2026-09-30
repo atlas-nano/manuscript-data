@@ -1,0 +1,8 @@
+RUNNING on EXPANSE
+RUNNING on CPUs
+Running on 32  processors and 1 OMP THREADS
+exe: /home/tpascal/codes/lammps/install/cpu/bin/lmp_expanse_cpu
+ldd not-found (exe): 0
+ldd not-found (.so): 0
+style check rc=0 lines=560 qeq/sam=1 pppm/samqeq=1 shake=2
+equil rc=0

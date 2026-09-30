@@ -1,0 +1,24 @@
+# conductor demonstration, experiment II: image law. arm gself, eta_Au 5.172, z 4.0 A (run_exp2.py)
+units           metal
+atom_style      full
+boundary        p p f
+read_data       data
+group           au   type 1
+group           ion  type 2
+pair_style      hybrid/overlay lj/cut 12.0 coul/long 12.0 coul/shield/intra 12.0 all gaussian
+pair_coeff      * * lj/cut 0.0 1.0
+pair_coeff      * * coul/long
+pair_coeff      1 1 coul/shield/intra 1.618000
+pair_coeff      1 2 coul/shield/intra 0.899444
+pair_coeff      2 2 coul/shield/intra 0.500000
+kspace_style    pppm/samqeq 1.0e-6
+kspace_modify   slab 3.0 mesh 72 84 80 gewald 0.35
+neighbor        2.0 bin
+fix             chg au qeq/sam 1 0.0 10.0 1.0e-8 param
+fix_modify      chg shield gaussian
+fix_modify      chg energy yes
+fix_modify      chg gself on width 0.50
+run             0
+write_dump      all custom charges.dump id mol type q x y z modify sort id format line "%d %d %d %.12g %.8f %.8f %.8f"
+variable        peval equal pe
+print           "${peval}" file pe.txt screen no

@@ -1,0 +1,333 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-553-gc8348c2a23-modified)
+  using 1 OpenMP thread(s) per MPI task
+# samQEq host-vs-device throughput benchmark: native SPC-FQ water (paper Section sec:water),
+# base.data (512 molecules, equilibrated by in.equil) replicated REP^3 times.
+#   -var REP n      replication per axis (2 -> 12,288 atoms; 4 -> 98,304; 6 -> 331,776; 8 -> 786,432)
+#   -var NSTEP n    timed steps
+#   -var DEV 0|1    1 = `fix_modify chg devsolve on` (KOKKOS binary only; the device charge solve)
+#   -var ASPC 0|1   1 = `fix_modify chg aspc 2` (predictor-corrector); 0 = full solve every step
+#   -var DUMP 0|1   1 = write per-atom charges at step 0 and at the last step (agreement check)
+#   -var TAG s      label for the dump files
+variable        REP   index 2
+variable        NSTEP index 200
+variable        DEV   index 0
+variable        ASPC  index 0
+variable        DUMP  index 0
+variable        TAG   index run
+units           metal
+atom_style      full
+boundary        p p p
+special_bonds   lj/coul 1.0 1.0 1.0
+read_data       base.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  4 by 4 by 8 MPI processor grid
+  reading atoms ...
+  1536 atoms
+  reading velocities ...
+  1536 velocities
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  4 by 4 by 8 MPI processor grid
+  reading bonds ...
+  1024 bonds
+  reading angles ...
+  512 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.003 seconds
+  read_data CPU = 0.036 seconds
+replicate       ${REP} ${REP} ${REP}
+replicate       2 ${REP} ${REP}
+replicate       2 2 ${REP}
+replicate       2 2 2
+Replication is creating a 2x2x2 = 8 times larger system...
+  orthogonal box = (0 0 0) to (49.6 49.6 49.6)
+  4 by 4 by 8 MPI processor grid
+  12288 atoms
+  8192 bonds
+  4096 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  replicate CPU = 0.006 seconds
+bond_style      zero
+bond_coeff      1 1.0
+angle_style     zero
+angle_coeff     1 109.47
+group           fq type 1 2
+12288 atoms in group fq
+pair_style      hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 5.0 all
+pair_coeff      1 1 lj/cut 0.01275 3.144
+pair_coeff      1 2 lj/cut 0.0 1.0
+pair_coeff      2 2 lj/cut 0.0 1.0
+pair_coeff      * * coul/long
+pair_coeff      * * coul/shield/intra 1.11
+kspace_style    pppm/samqeq 1.0e-6
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+fix             chg fq qeq/sam 1 0.0 10.0 1.0e-5 spcfq_expt.param
+if "${DEV} == 1" then "fix_modify chg devsolve on"
+if "${ASPC} == 1" then "fix_modify chg aspc 2"
+fix_modify chg aspc 2
+samqeq: ASPC q-direct predictor-corrector ON (order k=2, n_corr=2, omega=0.5714, rtol=0.01); fixed-iteration corrector off a time-reversible predictor, accept only if rel-resid<rtol else BO (BO<->XL middle ground, #16)
+fix             shk all shake 1.0e-4 100 0 b 1 a 1
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+    4096 = # of frozen angles
+  find clusters CPU = 0.003 seconds
+velocity        all create 298.0 4928459 mom yes rot yes dist gaussian loop geom
+timestep        0.001
+fix             nvt all nvt temp 298.0 298.0 0.1
+thermo_style    custom step temp press pe etotal
+thermo          50
+if "${DUMP} == 1" then "dump qd all custom ${NSTEP} q_${TAG}.dump id q" "dump_modify qd sort id format float %.12g"
+run             ${NSTEP}
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.34669431
+  grid = 80 80 80
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.5552871e-05
+  estimated relative force accuracy = 1.0800871e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 15979 4000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0 - redox_dp) -- pe + E_self is the energy the forces integrate
+samqeq: long-range EWALD (reciprocal-in-matvec) on (alpha=g_ewald=0.3467, swb=10.00); pair MUST be lj/cut/coul/long + kspace pppm/samqeq
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 9 9 9
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, copy from (2)
+      attributes: half, newton on, cut 12
+      pair build: copy
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, half/full from (5)
+      attributes: half, newton on, cut 12
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.39119 +/- 0.00000 (raw, K=16 deterministic probes) = 5.6329 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 15 iters (=15 matvecs), resid/b=3.50e-06, ASPC acc/rej=0/0
+Per MPI rank memory allocation (min/avg/max) = 16.88 | 17.18 | 17.35 Mbytes
+   Step          Temp          Press          PotEng         TotEng    
+         0   298           -1434.9754     -4880.6665     -4565.1531    
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=1.15e-04) at step 4 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=3.25e-04) at step 5 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=5.11e-04) at step 6 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=4.90e-04) at step 7 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=4.70e-04) at step 8 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.61e-04) at step 9 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.02e-04) at step 10 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.64e-04) at step 11 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.07e-04) at step 12 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.33e-04) at step 13 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.37e-04) at step 14 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.02e-04) at step 15 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.46e-04) at step 16 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.63e-04) at step 17 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.81e-04) at step 18 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.27e-04) at step 19 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.09e-04) at step 20 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.32e-04) at step 21 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.72e-04) at step 22 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.64e-04) at step 23 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.98e-04) at step 24 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.83e-04) at step 25 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.55e-04) at step 26 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.67e-04) at step 27 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.78e-04) at step 28 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.00e-04) at step 29 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.24e-04) at step 30 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.73e-04) at step 31 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=5.99e-04) at step 32 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.12e-04) at step 33 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.41e-04) at step 34 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.45e-04) at step 35 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.44e-04) at step 36 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.11e-04) at step 37 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.09e-04) at step 38 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.62e-04) at step 39 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.43e-04) at step 40 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.53e-04) at step 41 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.72e-04) at step 42 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.63e-04) at step 43 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.21e-04) at step 44 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.74e-04) at step 45 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.61e-04) at step 46 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.96e-04) at step 47 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.22e-04) at step 48 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.15e-04) at step 49 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.23e-04) at step 50 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+        50   250.02622     -3991.7197     -4927.182      -4662.4618    
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.45e-04) at step 51 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.59e-04) at step 52 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.31e-04) at step 53 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.37e-04) at step 54 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.70e-04) at step 55 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.12e-04) at step 56 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.61e-04) at step 57 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.99e-04) at step 58 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.50e-04) at step 59 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.80e-04) at step 60 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.94e-04) at step 61 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=6.56e-04) at step 62 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.95e-04) at step 63 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.27e-04) at step 64 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.29e-04) at step 65 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.67e-04) at step 66 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.55e-04) at step 67 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.58e-04) at step 68 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.66e-04) at step 69 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.44e-04) at step 70 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.22e-04) at step 71 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.41e-04) at step 72 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.00e-04) at step 73 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.80e-04) at step 74 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.39e-04) at step 75 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.52e-04) at step 76 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.18e-04) at step 77 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.46e-04) at step 78 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.54e-04) at step 79 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.51e-04) at step 80 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.14e-04) at step 81 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.73e-04) at step 82 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.29e-04) at step 83 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.94e-04) at step 84 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.55e-04) at step 85 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.12e-04) at step 86 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.54e-04) at step 87 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.20e-04) at step 88 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.60e-04) at step 89 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.80e-04) at step 90 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.41e-04) at step 91 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.39e-04) at step 92 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=1.02e-03) at step 93 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.41e-04) at step 94 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=1.03e-03) at step 95 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=1.01e-03) at step 96 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.85e-04) at step 97 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=1.02e-03) at step 98 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=9.00e-04) at step 99 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.76e-04) at step 100 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+       100   266.24619     -2548.2992     -4935.0378     -4653.1444    
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=1.00e-03) at step 101 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=7.46e-04) at step 102 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: samqeq projected CG did not converge (2 iters, resid/b=8.92e-04) at step 103 (src/SAMQEQ/fix_qeq_sam_lr.cpp:1719)
+WARNING: Too many warnings: 147 vs 100. All future warnings will be suppressed
+       150   271.48359     -1663.2215     -4930.2158     -4642.7772    
+samqeq SOLVER-DIAG step 200: CG 2 iters (=2 matvecs), resid/b=9.79e-04, ASPC acc/rej=196/0
+       200   278.83153     -1309.3721     -4927.1677     -4631.9493    
+       250   283.91385     -1002.2928     -4920.9825     -4620.383     
+       300   288.34688     -1140.5627     -4914.7996     -4609.5066    
+       350   289.74414     -961.51327     -4905.9279     -4599.1556    
+samqeq SOLVER-DIAG step 400: CG 2 iters (=2 matvecs), resid/b=1.02e-03, ASPC acc/rej=396/0
+       400   290.59095     -769.975       -4898.6982     -4591.0293    
+       450   295.27528     -776.78839     -4895.4628     -4582.8342    
+       500   295.94083     -505.44917     -4888.4884     -4575.1551    
+       550   299.43121     -799.11313     -4885.8004     -4568.7716    
+samqeq SOLVER-DIAG step 600: CG 2 iters (=2 matvecs), resid/b=1.18e-03, ASPC acc/rej=596/0
+       600   299.86617     -883.64959     -4881.7352     -4564.246     
+       650   303.42535     -1097.3771     -4881.6783     -4560.4207    
+       700   298.95393     -1100.0387     -4874.6414     -4558.118     
+       750   300.17406     -997.19696     -4872.5127     -4554.6975    
+samqeq SOLVER-DIAG step 800: CG 2 iters (=2 matvecs), resid/b=9.63e-04, ASPC acc/rej=796/0
+       800   300.41361     -934.27352     -4871.7872     -4553.7183    
+       850   301.78162     -828.87923     -4873.5657     -4554.0484    
+       900   303.92112     -1009.4295     -4877.9642     -4556.1817    
+       950   297.42851     -965.6873      -4873.6799     -4558.7715    
+samqeq SOLVER-DIAG step 1000: CG 2 iters (=2 matvecs), resid/b=9.93e-04, ASPC acc/rej=996/0
+      1000   296.39357     -1061.7564     -4875.6303     -4561.8178    
+samqeq HOST TIMING over 1001 solves
+   qeq_solve total                   6.163 s
+     build_molinv                    0.131 s    2.1%
+     q0 reference field              0.000 s    0.0%
+     project_neutral (6106 calls)      1.858 s   30.2%
+     CG (device when engaged)        5.122 s   83.1%
+     everything else (RHS fill, calculate_Q, ASPC bookkeeping)   -0.948 s  -15.4%
+Loop time of 16.1985 on 128 procs for 1000 steps with 12288 atoms
+
+Performance: 5.334 ns/day, 4.500 hours/ns, 61.734 timesteps/s, 758.591 katom-step/s
+98.8% CPU use with 128 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.0026     | 1.1997     | 1.3554     |   6.9 |  7.41
+Bond    | 0.00021041 | 0.00042693 | 0.00057467 |   0.0 |  0.00
+Kspace  | 3.0893     | 3.3571     | 3.6555     |   7.3 | 20.73
+Neigh   | 0.12344    | 0.12561    | 0.12789    |   0.3 |  0.78
+Comm    | 0.42527    | 0.54245    | 0.70115    |  10.2 |  3.35
+Output  | 0.0022687  | 0.0031617  | 0.0037775  |   1.0 |  0.02
+Modify  | 10.933     | 10.952     | 10.977     |   0.3 | 67.61
+Other   |            | 0.01813    |            |       |  0.11
+
+Nlocal:             96 ave         109 max          82 min
+Histogram: 4 5 14 12 24 29 11 15 9 5
+Nghost:        3933.84 ave        3997 max        3866 min
+Histogram: 6 9 8 17 16 16 31 16 5 4
+Neighs:        34944.9 ave       40046 max       28839 min
+Histogram: 3 5 9 12 21 26 24 12 11 5
+FullNghs:      69889.8 ave       80377 max       58919 min
+Histogram: 6 3 13 13 25 26 16 14 8 4
+
+Total # of neighbors = 8945898
+Ave neighs/atom = 728.01904
+Ave special neighs/atom = 1.3333333
+Neighbor list builds = 50
+Dangerous builds = 0
+print           "BENCH_DONE REP=${REP} NSTEP=${NSTEP} DEV=${DEV} ASPC=${ASPC} natoms=$(atoms)"
+BENCH_DONE REP=2 NSTEP=1000 DEV=0 ASPC=1 natoms=12288
+Total wall time: 0:00:16

@@ -1,0 +1,44 @@
+# Au(111) + SPC-FQ film dynamics, arm nometal (run_dyn_spc.py)
+units           metal
+atom_style      full
+boundary        p p p
+fix             pb all property/atom i_body ghost yes
+read_data       data fix pb NULL RigidBodies
+group           water type 2 3
+group           fq    type 2 3
+pair_style      hybrid/overlay lj/cut 12.0 coul/long 12.0 coul/shield/intra 12.0 all cbrt
+pair_coeff      * * lj/cut 0.0 1.0
+pair_coeff      2 2 lj/cut 0.01275 3.144
+pair_coeff      1 2 lj/cut 0.05 3.0            # illustrative Au-O term (not a fitted gold-water potential)
+pair_coeff      * * coul/long
+pair_coeff      1 1 coul/shield/intra 0.2372
+pair_coeff      2 2 coul/shield/intra 1.11
+pair_coeff      3 3 coul/shield/intra 1.11
+kspace_style    pppm/samqeq 1.0e-6
+kspace_modify   gewald 0.35 mesh 24 28 20   # pinned: all-zero start charges make the automatic mesh far too coarse
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+# per-molecule constraints
+fix             chg fq qeq/sam 1 0.0 12.0 1.0e-7 param
+fix_modify      chg shield cbrt
+fix_modify      chg energy yes
+
+velocity        water create 298.0 4928459 mom yes rot yes dist gaussian
+fix             rig water rigid/nvt/small custom i_body temp 298.0 298.0 0.02
+compute         kew water ke
+variable        Tw equal c_kew*2.0/((6*176-3)*8.617333e-5)
+variable        aq atom abs(q)
+compute         qmax fq reduce max v_aq
+thermo_style    custom step v_Tw pe c_qmax
+thermo          100
+timestep        0.00025
+run             2000            # gentle start from the grid (tight coupling, 0.25 fs)
+unfix           rig
+fix             rig water rigid/nvt/small custom i_body temp 298.0 298.0 0.1
+timestep        0.001
+run             3000
+dump            dq all custom 500 charges.lammpstrj id mol type q x y z
+dump_modify     dq sort id
+run             100
+print           "DYN_DONE" file done.txt screen no

@@ -1,0 +1,2 @@
+eta5.1720_gselfdefault Lanczos lambda_min=5.114 
+eta0.3000_gselfdefault Lanczos lambda_min=0.2424 

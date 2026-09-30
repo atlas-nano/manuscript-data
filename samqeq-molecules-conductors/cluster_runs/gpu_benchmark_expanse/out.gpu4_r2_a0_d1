@@ -1,0 +1,213 @@
+[1789585268.840066] [exp-7-60:1197433:0]          parser.c:1989 UCX  WARN  unused environment variable: UCX_ROOT (maybe: UCX_PROTOS?)
+[1789585268.840066] [exp-7-60:1197433:0]          parser.c:1989 UCX  WARN  (set UCX_WARN_UNUSED_ENV_VARS=n to suppress this warning)
+[1789585268.840050] [exp-7-60:1197435:0]          parser.c:1989 UCX  WARN  unused environment variable: UCX_ROOT (maybe: UCX_PROTOS?)
+[1789585268.840050] [exp-7-60:1197435:0]          parser.c:1989 UCX  WARN  (set UCX_WARN_UNUSED_ENV_VARS=n to suppress this warning)
+[1789585268.866612] [exp-7-60:1197436:0]          parser.c:1989 UCX  WARN  unused environment variable: UCX_ROOT (maybe: UCX_PROTOS?)
+[1789585268.866612] [exp-7-60:1197436:0]          parser.c:1989 UCX  WARN  (set UCX_WARN_UNUSED_ENV_VARS=n to suppress this warning)
+[1789585268.887247] [exp-7-60:1197434:0]          parser.c:1989 UCX  WARN  unused environment variable: UCX_ROOT (maybe: UCX_PROTOS?)
+[1789585268.887247] [exp-7-60:1197434:0]          parser.c:1989 UCX  WARN  (set UCX_WARN_UNUSED_ENV_VARS=n to suppress this warning)
+Kokkos::OpenMP::initialize WARNING: OMP_PROC_BIND environment variable not set
+  In general, for best performance with OpenMP 4.0 or better set OMP_PROC_BIND=spread and OMP_PLACES=threads
+  For best performance with OpenMP 3.1 set OMP_PROC_BIND=true
+  For unit testing set OMP_PROC_BIND=false
+Kokkos::OpenMP::initialize WARNING: OMP_PROC_BIND environment variable not set
+  In general, for best performance with OpenMP 4.0 or better set OMP_PROC_BIND=spread and OMP_PLACES=threads
+  For best performance with OpenMP 3.1 set OMP_PROC_BIND=true
+  For unit testing set OMP_PROC_BIND=false
+
+MPI detected: For OpenMP binding to work as intended, MPI ranks must be bound to exclusive CPU sets.
+
+
+MPI detected: For OpenMP binding to work as intended, MPI ranks must be bound to exclusive CPU sets.
+
+Kokkos::OpenMP::initialize WARNING: OMP_PROC_BIND environment variable not set
+  In general, for best performance with OpenMP 4.0 or better set OMP_PROC_BIND=spread and OMP_PLACES=threads
+  For best performance with OpenMP 3.1 set OMP_PROC_BIND=true
+  For unit testing set OMP_PROC_BIND=false
+
+MPI detected: For OpenMP binding to work as intended, MPI ranks must be bound to exclusive CPU sets.
+
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-553-gc8348c2a23-modified)
+KOKKOS mode with Kokkos version 5.1.99 is enabled
+  using double precision
+  using view layout = legacy
+  will use up to 4 GPU(s) per node
+Kokkos::OpenMP::initialize WARNING: OMP_PROC_BIND environment variable not set
+  In general, for best performance with OpenMP 4.0 or better set OMP_PROC_BIND=spread and OMP_PLACES=threads
+  For best performance with OpenMP 3.1 set OMP_PROC_BIND=true
+  For unit testing set OMP_PROC_BIND=false
+
+MPI detected: For OpenMP binding to work as intended, MPI ranks must be bound to exclusive CPU sets.
+
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1536 atoms
+  reading velocities ...
+  1536 velocities
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  1024 bonds
+  reading angles ...
+  512 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.029 seconds
+Replication is creating a 2x2x2 = 8 times larger system...
+  orthogonal box = (0 0 0) to (49.6 49.6 49.6)
+  1 by 2 by 2 MPI processor grid
+  12288 atoms
+  8192 bonds
+  4096 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  replicate CPU = 0.010 seconds
+12288 atoms in group fq
+samqeq/kk: S6 device solve ENABLED (engages on lr_ewald=0 + default gate)
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+    4096 = # of frozen angles
+  find clusters CPU = 0.002 seconds
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- KOKKOS package: https://doi.org/10.1145/3731599.3767498
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+The log file lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM Kokkos initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.34669431
+  grid = 80 80 80
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.5552871e-05
+  estimated relative force accuracy = 1.0800871e-06
+  using double precision cuFFT
+  3d grid and FFT values/proc = 213689 128000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0 - redox_dp) -- pe + E_self is the energy the forces integrate
+samqeq: long-range EWALD (reciprocal-in-matvec) on (alpha=g_ewald=0.3467, swb=10.00); pair MUST be lj/cut/coul/long + kspace pppm/samqeq
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 12, bins = 5 5 5
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, copy from (2)
+      attributes: half, newton on, kokkos_device, cut 12
+      pair build: copy/kk/device
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, half/full from (5)
+      attributes: half, newton on, kokkos_device, cut 12
+      pair build: halffull/newton/kk/device
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on, kokkos_device
+      pair build: copy/kk/device
+      stencil: none
+      bin: none
+  (4) fix qeq/sam/kk, perpetual, half/full from (5)
+      attributes: half, newton off, kokkos_device
+      pair build: halffull/newtoff/kk/device
+      stencil: none
+      bin: none
+  (5) fix qeq/sam/kk, perpetual
+      attributes: full, newton on, kokkos_device
+      pair build: full/bin/kk/device
+      stencil: full/bin/3d
+      bin: kk/device
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+WARNING: Fix qeq/sam/kk not compatible with sending data in Kokkos communication (src/KOKKOS/comm_kokkos.cpp:934)
+WARNING: Fix with atom-based arrays not compatible with sending data in Kokkos communication, switching to legacy exchange/border communication (src/KOKKOS/comm_kokkos.cpp:941)
+WARNING: Fix qeq/sam/kk not (yet) compatible with Kokkos sorting on device (src/KOKKOS/atom_kokkos.cpp:303)
+WARNING: Fix with atom-based arrays not (yet) compatible with Kokkos sorting on device, switching to legacy host sorting (src/KOKKOS/atom_kokkos.cpp:309)
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.39119 +/- 0.00000 (raw, K=16 deterministic probes) = 5.6329 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq/kk: stored-H device matvec active (3072 x 908 slots, 0.02 GB) — the pair kernels are evaluated once per solve instead of once per CG iteration
+samqeq/kk S7 device project_neutral: max|P_dev - P_host| = 0.000e+00 (default non-CONP path; ~0 => primitive correct)
+samqeq/kk S8 device qeq_matvec (q-direct): max|M_dev - M_host| = 1.082e-14 (eta+H+recip+project; ~0 => operator correct)
+samqeq SOLVER-DIAG step 0: CG 15 iters (=15 matvecs), resid/b=3.99e-06
+samqeq/kk S9 device q-direct CG: host 15 iters / device 15 iters, max|x_dev - x_host| = 7.147e-16 (~tol => CG correct)
+Per MPI rank memory allocation (min/avg/max) = 78.34 | 78.34 | 78.34 Mbytes
+   Step          Temp          Press          PotEng         TotEng    
+         0   298           -1434.9754     -4880.6665     -4565.1531    
+        50   250.13447     -3998.1717     -4927.2045     -4662.3697    
+WARNING: samqeq: build_molinv cache validity diverged across ranks at step 92 (per-rank atom-storage regrow; expected under migration). Recovered by a collective rebuild — before the s65 fix this was a permanent MPI deadlock (src/SAMQEQ/fix_qeq_sam_lr.cpp:2034)
+       100   266.37108     -2521.4285     -4934.9884     -4652.9627    
+       150   271.64063     -1665.1435     -4930.3109     -4642.706     
+       200   278.95611     -1288.5218     -4927.1507     -4631.8004    
+       250   284.0232      -1003.6487     -4920.8451     -4620.1299    
+       300   288.55256     -1145.101      -4914.9505     -4609.4398    
+       350   289.95452     -1007.9458     -4906.0709     -4599.0758    
+       400   290.73256     -775.84901     -4899.0204     -4591.2015    
+       450   295.57088     -804.06172     -4895.9271     -4582.9856    
+       500   295.63131     -561.55342     -4888.3155     -4575.31      
+       550   298.02686     -793.5055      -4884.9866     -4569.4448    
+       600   300.29459     -1069.6392     -4882.4064     -4564.4635    
+       650   302.48983     -1148.9778     -4880.9157     -4560.6486    
+       700   300.62704     -1124.681      -4876.4336     -4558.1388    
+       750   298.04468     -928.5552      -4873.4297     -4557.869     
+       800   300.13372     -1282.7802     -4874.6357     -4556.8632    
+       850   296.46635     -804.65014     -4870.9456     -4557.0559    
+       900   300.71889     -915.62763     -4873.9837     -4555.5916    
+       950   305.15777     -1244.8729     -4879.0022     -4555.9104    
+      1000   298.26812     -1191.6735     -4873.7738     -4557.9765    
+Loop time of 42.7995 on 4 procs for 1000 steps with 12288 atoms
+
+Performance: 2.019 ns/day, 11.889 hours/ns, 23.365 timesteps/s, 287.106 katom-step/s
+97.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.65971    | 0.67883    | 0.68851    |   1.4 |  1.59
+Bond    | 1.3477     | 1.3843     | 1.4102     |   2.0 |  3.23
+Kspace  | 2.3977     | 2.4362     | 2.4888     |   2.2 |  5.69
+Neigh   | 0.21205    | 0.21647    | 0.22059    |   0.8 |  0.51
+Comm    | 0.44535    | 0.45517    | 0.45875    |   0.8 |  1.06
+Output  | 0.0040986  | 0.0043495  | 0.0047288  |   0.4 |  0.01
+Modify  | 37.529     | 37.533     | 37.543     |   0.1 | 87.70
+Other   |            | 0.09077    |            |       |  0.21
+
+Nlocal:           3072 ave        3091 max        3038 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:        14631.8 ave       14662 max       14602 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:    1.11817e+06 ave 1.12864e+06 max 1.10183e+06 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+FullNghs:  2.23633e+06 ave 2.25387e+06 max 2.20109e+06 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+
+Total # of neighbors = 8945336
+Ave neighs/atom = 727.97331
+Ave special neighs/atom = 1.3333333
+Neighbor list builds = 50
+Dangerous builds = 0
+BENCH_DONE REP=2 NSTEP=1000 DEV=1 ASPC=0 natoms=12288
+Total wall time: 0:00:43

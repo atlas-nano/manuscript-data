@@ -1,0 +1,42 @@
+# ================================================================================================
+# samQEq params — Cu ELECTRODE + Zn/ZnCl2/LiCl(aq) NUCLEATION cell (units real, kcal/mol).
+# Board task #24 (expanded): the bare-Cu working-electrode leg = the Zn-on-Cu NUCLEATION case.
+# Types: 1 Ow, 2 Hw, 3 Zn2+ ion, 4 Cl-, 5 Zn0 (deposited metal, unified w/ ion), 6 Li+, 7 Cu electrode.
+#
+# Rows 1-6 IDENTICAL to ../p4/p4_multi.param (P0/P1/P4-landed rexsam water + Zn2+/Cl-/Zn0/Li+).
+# Row 7 (Cu electrode) is the NEW calibrated entry — the deliverable of this task.
+#
+# ---- Cu chi/eta CALIBRATION (row 7) --------------------------------------------------------------
+# chi_Cu = WORK-FUNCTION anchored.  Convention (newns-anderson-gate memory, "driving channel chi = Phi"):
+#   for a metal electrode the samQEq electronegativity chi == the work function Phi (chi = Fermi level
+#   position vs vacuum).  Cu polycrystalline Phi = 4.65 eV (facet spread: Cu(110) 4.48 / (100) 4.59 /
+#   (111) 4.94; 4.65 = poly/foil, matching the collaborator's bare-Cu WE).
+#     chi_Cu = 4.65 eV x 23.0605 = 107.2313 kcal/mol.
+#   WHY this fixes P2's unphysical PZC: the electrode fix does chi -> chi - V (fix_qeq_sam_electrode.cpp
+#   line 128), so the electrode's Q(V)=0 crossing (PZC) lands at V_deck ~ chi_Cu.  P2 used the generic
+#   Rappe atomic chi (3.729 eV) -> PZC ~ +3.5..+4.1 V (deck-absolute), physically meaningless.
+#   With chi_Cu = Phi = 4.65 eV the PZC lands at V_deck ~ +4.65 V (absolute-vs-vacuum scale).  The
+#   absolute electrode potential of the SHE = 4.44 V (Trasatti), so:
+#       E_PZC(vs SHE) = V_deck - 4.44 = 4.65 - 4.44 = +0.21 V  ==  experimental Cu PZC (+0.05..+0.3 V). ✓
+#   (residual = the solvent surface-dipole term delta in the Trasatti relation, ~0.1-0.3 eV, uncalibrated.)
+#
+# eta_Cu = 5.002 eV x 23.0605 = 115.3486 kcal/mol — the Rappe-Goddard atomic hardness (qeq.mst.par
+#   "Cu 1 3.729 5.002"), kept as the BARE metallic hardness.  NO soft-eta metal fudge (ion-metal-
+#   unification-25): metallic screening emerges from eta_loc; ridge eig conditions the solve regardless
+#   (metal-electrode-fq-architectural-wall: there is NO metal-scale wall, always `ridge eig`).
+#
+# gamma = 0.5 (Angstrom, invariant, matches every other row).  q0 = 0.0 (neutral, INERT metal — Cu is
+#   more noble than Zn, does NOT dissolve/deposit; it is the fixed foreign substrate + e- reservoir).
+#   ehomo/elumo = 0.0 0.0 (dead columns in the current M2 gate code; not used in populations/rate redox).
+#
+# Cu is NOT in the demon's REDOX group (only Zn ion/metal = types 3,5 are).  In the FQ solve group are
+# water(1,2) + Zn ion/metal(3,5) + Cu(7); Cl(4) and Li(6) stay fixed-formal (P1 sloshing-safe).
+# ================================================================================================
+0.30 10.0 2.0 3.5 0.0 2 0.0
+1 262.8897 308.1805 0.5 0.0 -161.4235 69.1815
+2 104.4179 414.7223 0.5 0.0 -161.4235 69.1815
+3 117.8184 197.6331 0.5 2.0 -216.6303 -414.2588
+4 197.4901 228.1145 0.5 -1.0 -299.0486 -83.3176
+5 117.8184 197.6331 0.5 0.0 -216.6303 -414.2588   # Zn0 deposited metal (UNIFIED: chi/eta = Zn2+ ion, q0=0)
+6 69.3178  110.0397 0.5 1.0 0.0 0.0                 # Li+ (spectator, formal-charge; not in FQ group)
+7 107.2313 115.3486 0.5 0.0 0.0 0.0                 # Cu electrode (chi=WF 4.65 eV, eta=Rappe 5.002 eV, INERT q0=0)

@@ -1,0 +1,154 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-553-gc8348c2a23-modified)
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  4 by 4 by 8 MPI processor grid
+  reading atoms ...
+  1536 atoms
+  reading velocities ...
+  1536 velocities
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  4 by 4 by 8 MPI processor grid
+  reading bonds ...
+  1024 bonds
+  reading angles ...
+  512 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.003 seconds
+  read_data CPU = 0.034 seconds
+Replication is creating a 4x4x4 = 64 times larger system...
+  orthogonal box = (0 0 0) to (99.2 99.2 99.2)
+  4 by 4 by 8 MPI processor grid
+  98304 atoms
+  65536 bonds
+  32768 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  replicate CPU = 0.008 seconds
+98304 atoms in group fq
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+   32768 = # of frozen angles
+  find clusters CPU = 0.005 seconds
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+The log file lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.34669431
+  grid = 160 160 160
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.5552871e-05
+  estimated relative force accuracy = 1.0800871e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 69629 32000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0 - redox_dp) -- pe + E_self is the energy the forces integrate
+samqeq: long-range EWALD (reciprocal-in-matvec) on (alpha=g_ewald=0.3467, swb=10.00); pair MUST be lj/cut/coul/long + kspace pppm/samqeq
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 17 17 17
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, copy from (2)
+      attributes: half, newton on, cut 12
+      pair build: copy
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, half/full from (5)
+      attributes: half, newton on, cut 12
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.39120 +/- 0.00000 (raw, K=16 deterministic probes) = 5.6331 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 15 iters (=15 matvecs), resid/b=3.51e-06
+Per MPI rank memory allocation (min/avg/max) = 38.52 | 38.64 | 38.77 Mbytes
+   Step          Temp          Press          PotEng         TotEng    
+         0   298           -1794.1575     -39045.366     -36520.989    
+        50   249.98259     -4157.6421     -39439.046     -37321.428    
+       100   264.47143     -2905.1064     -39510.914     -37270.56     
+       150   271.32524     -2059.2789     -39505.904     -37207.491    
+samqeq SOLVER-DIAG step 200: CG 15 iters (=15 matvecs), resid/b=5.02e-06
+       200   274.50867     -1551.6138     -39474.396     -37149.015    
+samqeq HOST TIMING over 201 solves
+   qeq_solve total                  50.358 s
+     build_molinv                    0.052 s    0.1%
+     q0 reference field              0.000 s    0.0%
+     project_neutral (6217 calls)      9.476 s   18.8%
+     CG (device when engaged)       49.877 s   99.0%
+     everything else (RHS fill, calculate_Q, ASPC bookkeeping)   -9.047 s  -18.0%
+Loop time of 63.0592 on 128 procs for 200 steps with 98304 atoms
+
+Performance: 0.274 ns/day, 87.582 hours/ns, 3.172 timesteps/s, 311.783 katom-step/s
+98.9% CPU use with 128 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.8275     | 1.8974     | 1.9679     |   2.6 |  3.01
+Bond    | 0.00011004 | 0.00014    | 0.00018707 |   0.0 |  0.00
+Kspace  | 4.2769     | 4.3805     | 4.5227     |   2.9 |  6.95
+Neigh   | 0.18728    | 0.18932    | 0.19158    |   0.3 |  0.30
+Comm    | 0.23262    | 0.28902    | 0.34306    |   4.9 |  0.46
+Output  | 0.00060049 | 0.00081948 | 0.00096908 |   0.0 |  0.00
+Modify  | 56.237     | 56.286     | 56.351     |   0.4 | 89.26
+Other   |            | 0.01584    |            |       |  0.03
+
+Nlocal:            768 ave         794 max         742 min
+Histogram: 3 10 14 14 23 18 19 17 8 2
+Nghost:        7974.01 ave        8060 max        7877 min
+Histogram: 4 8 26 20 6 1 11 28 16 8
+Neighs:         279555 ave      291603 max      267114 min
+Histogram: 4 9 19 15 15 12 18 22 10 4
+FullNghs:       559110 ave      583176 max      534852 min
+Histogram: 3 10 18 15 19 12 18 21 8 4
+
+Total # of neighbors = 71566054
+Ave neighs/atom = 728.00755
+Ave special neighs/atom = 1.3333333
+Neighbor list builds = 10
+Dangerous builds = 0
+BENCH_DONE REP=4 NSTEP=200 DEV=0 ASPC=0 natoms=98304
+Total wall time: 0:01:03

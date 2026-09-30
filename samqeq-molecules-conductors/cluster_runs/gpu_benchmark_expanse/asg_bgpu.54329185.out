@@ -1,0 +1,27 @@
+RUNNING on EXPANSE
+RUNNING on GPUs (4 GPU(s))
+host exp-7-59  CUDA_VISIBLE_DEVICES=0,1,2,3  ldd not-found (.so): 0
+Tesla V100-SXM2-32GB, 32768 MiB
+Tesla V100-SXM2-32GB, 32768 MiB
+Tesla V100-SXM2-32GB, 32768 MiB
+Tesla V100-SXM2-32GB, 32768 MiB
+gpu1_r2_a0_d1 rc=0
+   peak GPU memory (MiB): 940
+Loop time of 57.9034 on 1 procs for 1000 steps with 12288 atoms
+Performance: 1.492 ns/day, 16.084 hours/ns, 17.270 timesteps/s, 212.215 katom-step/s
+samqeq/kk: stored-H device matvec active (12288 x 925 slots, 0.08 GB) — the pair kernels are evaluated once per solve instead of once per CG iteration
+gpu1_r4_a0_d1 rc=0
+   peak GPU memory (MiB): 3710
+Loop time of 137.132 on 1 procs for 200 steps with 98304 atoms
+Performance: 0.126 ns/day, 190.461 hours/ns, 1.458 timesteps/s, 143.371 katom-step/s
+samqeq/kk: stored-H device matvec active (98304 x 925 slots, 0.68 GB) — the pair kernels are evaluated once per solve instead of once per CG iteration
+gpu1_r6_a0_d1 rc=0
+   peak GPU memory (MiB): 10468
+Loop time of 363.406 on 1 procs for 100 steps with 331776 atoms
+Performance: 0.024 ns/day, 1009.462 hours/ns, 0.275 timesteps/s, 91.296 katom-step/s
+samqeq/kk: stored-H device matvec active (331776 x 925 slots, 2.29 GB) — the pair kernels are evaluated once per solve instead of once per CG iteration
+gpu1_r8_a0_d1 rc=0
+   peak GPU memory (MiB): 23320
+Loop time of 465.713 on 1 procs for 50 steps with 786432 atoms
+Performance: 0.009 ns/day, 2587.294 hours/ns, 0.107 timesteps/s, 84.433 katom-step/s
+samqeq/kk: stored-H device matvec active (786432 x 925 slots, 5.42 GB) — the pair kernels are evaluated once per solve instead of once per CG iteration

@@ -1,0 +1,46 @@
+# samQEq host-vs-device throughput benchmark: native SPC-FQ water (paper Section sec:water),
+# base.data (512 molecules, equilibrated by in.equil) replicated REP^3 times.
+#   -var REP n      replication per axis (2 -> 12,288 atoms; 4 -> 98,304; 6 -> 331,776; 8 -> 786,432)
+#   -var NSTEP n    timed steps
+#   -var DEV 0|1    1 = `fix_modify chg devsolve on` (KOKKOS binary only; the device charge solve)
+#   -var ASPC 0|1   1 = `fix_modify chg aspc 2` (predictor-corrector); 0 = full solve every step
+#   -var DUMP 0|1   1 = write per-atom charges at step 0 and at the last step (agreement check)
+#   -var TAG s      label for the dump files
+variable        REP   index 2
+variable        NSTEP index 200
+variable        DEV   index 0
+variable        ASPC  index 0
+variable        DUMP  index 0
+variable        TAG   index run
+units           metal
+atom_style      full
+boundary        p p p
+special_bonds   lj/coul 1.0 1.0 1.0
+read_data       base.data
+replicate       ${REP} ${REP} ${REP}
+bond_style      zero
+bond_coeff      1 1.0
+angle_style     zero
+angle_coeff     1 109.47
+group           fq type 1 2
+pair_style      hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 5.0 all
+pair_coeff      1 1 lj/cut 0.01275 3.144
+pair_coeff      1 2 lj/cut 0.0 1.0
+pair_coeff      2 2 lj/cut 0.0 1.0
+pair_coeff      * * coul/long
+pair_coeff      * * coul/shield/intra 1.11
+kspace_style    pppm/samqeq 1.0e-6
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+fix             chg fq qeq/sam 1 0.0 10.0 1.0e-5 spcfq_expt.param
+if "${DEV} == 1" then "fix_modify chg devsolve on"
+if "${ASPC} == 1" then "fix_modify chg aspc 2"
+fix             shk all shake 1.0e-4 100 0 b 1 a 1
+velocity        all create 298.0 4928459 mom yes rot yes dist gaussian loop geom
+timestep        0.001
+fix             nvt all nvt temp 298.0 298.0 0.1
+thermo_style    custom step temp press pe etotal
+thermo          50
+if "${DUMP} == 1" then "dump qd all custom ${NSTEP} q_${TAG}.dump id q" "dump_modify qd sort id format float %.12g"
+run             ${NSTEP}
+print           "BENCH_DONE REP=${REP} NSTEP=${NSTEP} DEV=${DEV} ASPC=${ASPC} natoms=$(atoms)"

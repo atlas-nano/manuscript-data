@@ -1,0 +1,29 @@
+# Force bisection: host vs -sf kk forces at fixed charges (no fix qeq/sam), run 0.
+#   V=1 full native-water hybrid + pppm/samqeq   V=2 lj/cut+coul/long + pppm/samqeq   V=3 lj/cut only
+#   V=4 coul/long + stock pppm   V=5 coul/long + pppm/samqeq   V=6 coul/long+coul/shield/intra + pppm/samqeq
+#   V=7 coul/long + ewald.  Compare the fb_<TAG>.dump files (id q fx fy fz x y z).
+variable        V index 1
+units           metal
+atom_style      full
+boundary        p p p
+lattice         sc 3.1
+region          box block 0 8 0 8 0 8
+create_box      2 box
+molecule        h2o spcfq.mol
+mass            1 15.9994
+mass            2 1.008
+create_atoms    0 box mol h2o 12345
+set             type 1 charge -0.85
+set             type 2 charge 0.425
+group           fq type 1 2
+if "${V} == 1" then "pair_style hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 5.0 all" "pair_coeff 1 1 lj/cut 0.01275 3.144" "pair_coeff 1 2 lj/cut 0.0 1.0" "pair_coeff 2 2 lj/cut 0.0 1.0" "pair_coeff * * coul/long" "pair_coeff * * coul/shield/intra 1.11" "kspace_style pppm/samqeq 1.0e-6"
+if "${V} == 2" then "pair_style hybrid/overlay lj/cut 10.0 coul/long 10.0" "pair_coeff 1 1 lj/cut 0.01275 3.144" "pair_coeff 1 2 lj/cut 0.0 1.0" "pair_coeff 2 2 lj/cut 0.0 1.0" "pair_coeff * * coul/long" "kspace_style pppm/samqeq 1.0e-6"
+if "${V} == 3" then "pair_style lj/cut 10.0" "pair_coeff 1 1 0.01275 3.144" "pair_coeff 1 2 0.0 1.0" "pair_coeff 2 2 0.0 1.0"
+if "${V} == 4" then "pair_style coul/long 10.0" "pair_coeff * *" "kspace_style pppm 1.0e-6"
+if "${V} == 5" then "pair_style coul/long 10.0" "pair_coeff * *" "kspace_style pppm/samqeq 1.0e-6"
+if "${V} == 6" then "pair_style hybrid/overlay coul/long 10.0 coul/shield/intra 5.0 all" "pair_coeff * * coul/long" "pair_coeff * * coul/shield/intra 1.11" "kspace_style pppm/samqeq 1.0e-6"
+if "${V} == 7" then "pair_style coul/long 10.0" "pair_coeff * *" "kspace_style ewald 1.0e-6"
+neighbor        2.0 bin
+thermo_style    custom step pe press
+run             0
+write_dump      all custom fb_${TAG}.dump id q fx fy fz x y z modify sort id format float %.12g

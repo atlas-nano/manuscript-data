@@ -1,0 +1,300 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# TIP4P-FQ (Rick, Stuart & Berne JCP 101, 6141 (1994)) liquid water, samQEq
+# KERNEL-REFIT port. 256-molecule box built from Rick's own equilibrated
+# mdtpn.dat config (build_box.py), vol=7660.31 A^3, rho=1.0 g/cc, fixed (NVT).
+# Kernel: gaussian/pqeq erf(a_ij r)/r, fit EXACTLY to Rick's jrab() J_HH(1.5139)
+# and J_OH(r_MH=0.8735) (see fit_j.py) -- the physically-operative rigid-body
+# distances. Single `run` command (multi-run is a known samQEq calibration
+# artifact); tail-window ave/time blocks report thermalized averages.
+units           metal
+atom_style      full
+boundary        p p p
+read_data       tip4pfq_liquid.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (19.712825 19.712825 19.712825)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1024 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 0) to (19.712825 19.712825 19.712825)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  512 bonds
+  reading angles ...
+  256 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.009 seconds
+
+group           watO  type 1
+256 atoms in group watO
+group           watH  type 2
+512 atoms in group watH
+group           watM  type 3
+256 atoms in group watM
+group           fq    type 2 3
+768 atoms in group fq
+
+# LJ on O-O only (Table I): eps=0.2862 kcal/mol=0.012412 eV, sigma=3.159 A
+pair_style      hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 5.0 all gaussian
+pair_coeff      1 1 lj/cut 0.012412 3.159
+pair_coeff      1 2 lj/cut 0.0 1.0
+pair_coeff      1 3 lj/cut 0.0 1.0
+pair_coeff      2 2 lj/cut 0.0 1.0
+pair_coeff      2 3 lj/cut 0.0 1.0
+pair_coeff      3 3 lj/cut 0.0 1.0
+pair_coeff      * * coul/long
+pair_coeff      1 1 coul/shield/intra 0.315328
+pair_coeff      2 2 coul/shield/intra 0.404355
+pair_coeff      3 3 coul/shield/intra 0.315328
+pair_coeff      1 2 coul/shield/intra 0.357078
+pair_coeff      1 3 coul/shield/intra 0.315328
+pair_coeff      2 3 coul/shield/intra 0.357078
+# ^ s38 FIX: hybrid/overlay contributes ZERO for unset sub-style cross pairs (no auto init_one
+#   mixing, no warning) — the unset M-H pair hid a +3.2 eV/mol pe error (U_bind -82 naive / -13.6
+#   'corrected' -> -9.90 = Rick EXACT once fixed). Cross values: sqrt-mixed (used by cbrt mode;
+#   pqeq/slater kernels read type diagonals only). See ubind/DIAGNOSIS_UBIND.md.
+
+special_bonds   lj/coul 1.0e-8 1.0e-8 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1e-08    1e-08    1       
+  special bond factors coul:  1e-08    1e-08    1       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+kspace_style    pppm/samqeq 1.0e-5
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+fix             chg fq qeq/sam 1 0.0 10.0 1.0e-5 water4_liquid_gauss.param
+fix_modify      chg shield gaussian
+samqeq: lr-solve shielding = PQEq Gaussian erf(a_ij r)/r (param 4th col = Rc (Gaussian radius)); routed through compute_H + add_fixed_charge_field + the legacy gas path (calc_Hval)
+fix_modify      chg energy yes
+# ROOT CAUSE (found via a dt-scan diagnostic, in.diag_dt.tmp/in.diag_dt2.tmp, logs
+# log.diag_dt/log.diag_dt2): dt=0.5 fs (the task's suggested value) is NOT a stable
+# integration step for this system -- the intramolecular M-H charge oscillator is very
+# stiff (r_MH=0.87 A, eta_M/H~16/15 eV) and the rigid-body torque response amplifies any
+# discretization error into a genuine near-critical SCF catastrophe within a few hundred
+# steps (confirmed: NEITHER an offset-quartic wall NOR the rnd charge-freeze safeguard
+# cured it at dt=0.5fs -- both only delayed/relocated the same blow-up, proof this is an
+# INTEGRATION-timestep problem, not a kernel-fit or Hessian-singularity problem). At
+# dt=0.1 and dt=0.2 fs the SAME deck (no stabilizers needed at all) is fully stable over
+# the tested window with mu/qM/qH/T all physically sane and drifting toward the targets.
+# Using dt=0.2 fs (4x smaller than the task's suggested 0.5 fs) here.
+
+compute         qMpa watM property/atom q
+compute         qMc  watM reduce ave c_qMpa
+compute         qHpa watH property/atom q
+compute         qHc  watH reduce ave c_qHpa
+compute         dip all dipole/samqeq
+variable        mu   equal c_dip
+variable        qM   equal c_qMc
+variable        qH   equal c_qHc
+variable        pemol equal pe/256.0
+variable        T equal temp
+variable        P equal press
+
+timestep        0.0002
+velocity        all create 298.0 65491 mom yes rot yes dist gaussian
+fix             rig all rigid/nvt/small molecule temp 298.0 298.0 0.02
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  256 rigid bodies with 1024 atoms
+  0.87348128 = max distance from body owner to body atom
+
+thermo          250
+thermo_style    custom step temp press density pe v_pemol v_mu v_qM v_qH
+thermo_modify   flush yes
+
+# --- tail-window averages inside the ONE run (last ~1 ps of a 3 ps / 15000-step run) ---
+compute         rdfOO all rdf 100 1 1
+fix             rdfavg all ave/time 50 100 15000 c_rdfOO[*] file oo_rdf.dat mode vector
+fix             propavg all ave/time 25 200 15000 v_mu v_qM v_qH v_T v_P v_pemol ave one file props_tail.dat
+
+dump            tr all custom 1000 tip4pfq_liquid.lammpstrj id type xu yu zu q
+run             5000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.31499941
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0001309434
+  estimated relative force accuracy = 9.0935157e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 19683 8000
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:165)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:167)
+WARNING: Angles are defined but no angle style is set (src/force.cpp:170)
+WARNING: Likewise 1-3 special neighbor interactions != 1.0 (src/force.cpp:172)
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 4 4 4
+  6 neighbor lists, perpetual/occasional/extra = 5 1 0
+  (1) pair lj/cut, perpetual, half/full from (6)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, trim from (2)
+      attributes: half, newton on, cut 7
+      pair build: trim
+      stencil: none
+      bin: none
+  (4) compute rdf, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual, half/full from (6)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (6) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.35523 +/- 0.00000 (raw, K=16 deterministic probes) = 5.1152 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 11 iters (=11 matvecs), resid/b=9.06e-06
+Per MPI rank memory allocation (min/avg/max) = 55.19 | 55.19 | 55.19 Mbytes
+   Step          Temp          Press         Density         PotEng        v_pemol          v_mu           v_qM           v_qH     
+         0   309.65895      55292.123      0.99973842    -440.44019     -1.7204695      2.5935759     -1.2273072      0.61365361   
+samqeq SOLVER-DIAG step 200: CG 11 iters (=11 matvecs), resid/b=8.34e-06
+       250   295.59762      4446.2082      0.99973842    -440.14722     -1.7193251      2.5312208     -1.1999409      0.59997046   
+samqeq SOLVER-DIAG step 400: CG 11 iters (=11 matvecs), resid/b=8.92e-06
+       500   290.77622      2495.755       0.99973842    -437.42344     -1.7086853      2.4896002     -1.1803903      0.59019515   
+samqeq SOLVER-DIAG step 600: CG 11 iters (=11 matvecs), resid/b=7.31e-06
+       750   308.93631      1583.9312      0.99973842    -437.07199     -1.7073124      2.4766248     -1.1746257      0.58731283   
+samqeq SOLVER-DIAG step 800: CG 11 iters (=11 matvecs), resid/b=6.80e-06
+samqeq SOLVER-DIAG step 1000: CG 11 iters (=11 matvecs), resid/b=7.86e-06
+      1000   293.07769      833.94494      0.99973842    -437.00674     -1.7070576      2.4637662     -1.1700767      0.58503833   
+samqeq SOLVER-DIAG step 1200: CG 11 iters (=11 matvecs), resid/b=6.40e-06
+      1250   279.51285      71.862962      0.99973842    -435.14603     -1.6997892      2.4488229     -1.1621902      0.5810951    
+samqeq SOLVER-DIAG step 1400: CG 11 iters (=11 matvecs), resid/b=6.77e-06
+      1500   300.81054      373.38384      0.99973842    -434.24563     -1.696272       2.4401868     -1.1578021      0.57890106   
+samqeq SOLVER-DIAG step 1600: CG 11 iters (=11 matvecs), resid/b=6.50e-06
+      1750   318.89904     -447.99922      0.99973842    -434.76469     -1.6982996      2.4388857     -1.1573501      0.57867507   
+samqeq SOLVER-DIAG step 1800: CG 11 iters (=11 matvecs), resid/b=7.15e-06
+samqeq SOLVER-DIAG step 2000: CG 11 iters (=11 matvecs), resid/b=6.51e-06
+      2000   301.4561      -616.68056      0.99973842    -434.09795     -1.6956951      2.4309331     -1.1538271      0.57691357   
+samqeq SOLVER-DIAG step 2200: CG 11 iters (=11 matvecs), resid/b=6.81e-06
+      2250   323.17044     -970.8291       0.99973842    -433.20153     -1.6921935      2.4179172     -1.1476531      0.57382657   
+samqeq SOLVER-DIAG step 2400: CG 11 iters (=11 matvecs), resid/b=9.20e-06
+      2500   288.21096     -1632.7505      0.99973842    -433.1927      -1.692159       2.4191479     -1.1460463      0.57302316   
+samqeq SOLVER-DIAG step 2600: CG 11 iters (=11 matvecs), resid/b=6.76e-06
+      2750   294.87432     -1980.587       0.99973842    -431.82316     -1.6868092      2.4037206     -1.1394777      0.56973887   
+samqeq SOLVER-DIAG step 2800: CG 11 iters (=11 matvecs), resid/b=8.54e-06
+samqeq SOLVER-DIAG step 3000: CG 11 iters (=11 matvecs), resid/b=7.12e-06
+      3000   308.0647      -1888.5708      0.99973842    -431.06956     -1.6838655      2.3926878     -1.1356362      0.56781812   
+samqeq SOLVER-DIAG step 3200: CG 11 iters (=11 matvecs), resid/b=8.23e-06
+      3250   290.50228     -1014.6928      0.99973842    -431.02166     -1.6836783      2.405908      -1.1405654      0.5702827    
+samqeq SOLVER-DIAG step 3400: CG 11 iters (=11 matvecs), resid/b=8.64e-06
+      3500   305.45975     -164.03523      0.99973842    -431.49206     -1.6855159      2.4135699     -1.1454024      0.57270119   
+samqeq SOLVER-DIAG step 3600: CG 11 iters (=11 matvecs), resid/b=7.28e-06
+      3750   297.88813     -187.66485      0.99973842    -431.62795     -1.6860467      2.4147075     -1.1458206      0.5729103    
+samqeq SOLVER-DIAG step 3800: CG 11 iters (=11 matvecs), resid/b=7.24e-06
+samqeq SOLVER-DIAG step 4000: CG 11 iters (=11 matvecs), resid/b=6.96e-06
+      4000   311.00577     -977.16643      0.99973842    -433.26966     -1.6924596      2.4225397     -1.1497652      0.57488258   
+samqeq SOLVER-DIAG step 4200: CG 11 iters (=11 matvecs), resid/b=8.01e-06
+      4250   295.71308     -714.54332      0.99973842    -432.37665     -1.6889713      2.4182044     -1.1463462      0.57317311   
+samqeq SOLVER-DIAG step 4400: CG 11 iters (=11 matvecs), resid/b=7.43e-06
+      4500   299.15146     -923.57362      0.99973842    -432.52625     -1.6895557      2.4172197     -1.1466113      0.57330564   
+samqeq SOLVER-DIAG step 4600: CG 11 iters (=11 matvecs), resid/b=7.40e-06
+      4750   310.07588      526.35057      0.99973842    -432.11375     -1.6879443      2.4265256     -1.1496927      0.57484633   
+samqeq SOLVER-DIAG step 4800: CG 11 iters (=11 matvecs), resid/b=8.57e-06
+samqeq SOLVER-DIAG step 5000: CG 11 iters (=11 matvecs), resid/b=7.30e-06
+      5000   290.00394     -884.37386      0.99973842    -432.28991     -1.6886324      2.4174339     -1.1459958      0.57299789   
+Loop time of 220.259 on 1 procs for 5000 steps with 1024 atoms
+
+Performance: 0.392 ns/day, 61.183 hours/ns, 22.701 timesteps/s, 23.245 katom-step/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 69.277     | 69.277     | 69.277     |   0.0 | 31.45
+Bond    | 0.0037938  | 0.0037938  | 0.0037938  |   0.0 |  0.00
+Kspace  | 4.4198     | 4.4198     | 4.4198     |   0.0 |  2.01
+Neigh   | 1.3119     | 1.3119     | 1.3119     |   0.0 |  0.60
+Comm    | 0.40674    | 0.40674    | 0.40674    |   0.0 |  0.18
+Output  | 0.012385   | 0.012385   | 0.012385   |   0.0 |  0.01
+Modify  | 144.65     | 144.65     | 144.65     |   0.0 | 65.67
+Other   |            | 0.176      |            |       |  0.08
+
+Nlocal:           1024 ave        1024 max        1024 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          10158 ave       10158 max       10158 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         495055 ave      495055 max      495055 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       990110 ave      990110 max      990110 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 990110
+Ave neighs/atom = 966.9043
+Ave special neighs/atom = 1.5
+Neighbor list builds = 43
+Dangerous builds = 0
+
+write_restart   tip4pfq_liquid.restart
+System init for write_restart ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.31604092
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00010661024
+  estimated relative force accuracy = 7.4036716e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 19683 8000
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:165)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:167)
+WARNING: Angles are defined but no angle style is set (src/force.cpp:170)
+WARNING: Likewise 1-3 special neighbor interactions != 1.0 (src/force.cpp:172)
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+Total wall time: 0:03:40

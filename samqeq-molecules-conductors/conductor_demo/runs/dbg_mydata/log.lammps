@@ -1,0 +1,245 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# 180 SPC-FQ molecules, lateral box of the Au(111) slab, 0.98 g/cc; settings of the stable v_mine variant
+units        metal
+atom_style   full
+boundary     p p p
+read_data    mydata
+Reading data file ...
+  orthogonal box = (0 0 0) to (17.650658 20.381224 14.97)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  528 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+group        fq type 2 3
+528 atoms in group fq
+pair_style   hybrid/overlay lj/cut 12.0 coul/long 12.0 coul/shield/intra 12.0 all cbrt
+pair_coeff   * * lj/cut 0.0 1.0
+pair_coeff   2 2 lj/cut 0.01275 3.144
+pair_coeff   * * coul/long
+pair_coeff   * * coul/shield/intra 1.11
+kspace_style pppm/samqeq 1.0e-6
+kspace_modify gewald 0.35 mesh 24 28 20
+Updated KSpace settings:
+  KSpace computation is turned:    ON
+  Use MPI collective operations:   OFF
+  Use MPI non-blocking operations: OFF
+  Gewald manually set to:          0.35
+neighbor     2.0 bin
+neigh_modify every 1 delay 0 check yes
+fix          chg fq qeq/sam 1 0.0 12.0 1.0e-7 param3
+fix_modify   chg shield cbrt
+samqeq: lr-solve shielding = cbrt J_shield (param 4th col = gamma); routed through compute_H + add_fixed_charge_field + the legacy gas path (calc_Hval)
+velocity     all create 298 4928459 mom yes rot yes
+variable     aq atom abs(q)
+compute      qmax fq reduce max v_aq
+thermo_style custom step temp pe c_qmax
+thermo       500
+timestep     0.00025
+fix          integ all rigid/nvt/small molecule temp 298 298 0.02
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  176 rigid bodies with 528 atoms
+  1.0000026 = max distance from body owner to body atom
+run          2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+WARNING: Using kspace solver on system with no charge (src/kspace.cpp:317)
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.35
+  grid = 24 30 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0
+  estimated relative force accuracy = 0
+  using double precision FFTW3
+  3d grid and FFT values/proc = 30969 14400
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 3 3 3
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, half/full from (5)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): not yet calibrated -- measured at the first solve by the K=16 deterministic-probe route
+samqeq: calibrated grid reciprocal self-term recip_self=0.39457 +/- 0.00016 (raw, K=16 deterministic probes) = 5.6816 eV/e (subtracted so the QEq diagonal stays = eta)
+samqeq SOLVER-DIAG step 0: CG 20 iters (=20 matvecs), resid/b=4.39e-08
+Per MPI rank memory allocation (min/avg/max) = 45.16 | 45.16 | 45.16 Mbytes
+   Step          Temp          PotEng         c_qmax    
+         0   299.32212     -208.41437      1.4612247    
+samqeq SOLVER-DIAG step 200: CG 20 iters (=20 matvecs), resid/b=4.39e-08
+samqeq SOLVER-DIAG step 400: CG 20 iters (=20 matvecs), resid/b=3.93e-08
+       500   296.60054     -207.89321      1.4586103    
+samqeq SOLVER-DIAG step 600: CG 20 iters (=20 matvecs), resid/b=5.77e-08
+samqeq SOLVER-DIAG step 800: CG 20 iters (=20 matvecs), resid/b=4.57e-08
+samqeq SOLVER-DIAG step 1000: CG 20 iters (=20 matvecs), resid/b=4.24e-08
+      1000   289.66921     -208.93048      1.5102576    
+samqeq SOLVER-DIAG step 1200: CG 20 iters (=20 matvecs), resid/b=5.20e-08
+samqeq SOLVER-DIAG step 1400: CG 20 iters (=20 matvecs), resid/b=5.52e-08
+      1500   287.97261     -210.67902      1.4625429    
+samqeq SOLVER-DIAG step 1600: CG 20 iters (=20 matvecs), resid/b=4.55e-08
+samqeq SOLVER-DIAG step 1800: CG 20 iters (=20 matvecs), resid/b=4.60e-08
+samqeq SOLVER-DIAG step 2000: CG 20 iters (=20 matvecs), resid/b=5.43e-08
+      2000   295.54257     -208.83372      1.4836583    
+Loop time of 57.0222 on 1 procs for 2000 steps with 528 atoms
+
+Performance: 0.758 ns/day, 31.679 hours/ns, 35.074 timesteps/s, 18.519 katom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 14.445     | 14.445     | 14.445     |   0.0 | 25.33
+Bond    | 0.00048414 | 0.00048414 | 0.00048414 |   0.0 |  0.00
+Kspace  | 1.2018     | 1.2018     | 1.2018     |   0.0 |  2.11
+Neigh   | 0.16589    | 0.16589    | 0.16589    |   0.0 |  0.29
+Comm    | 0.064349   | 0.064349   | 0.064349   |   0.0 |  0.11
+Output  | 0.00013567 | 0.00013567 | 0.00013567 |   0.0 |  0.00
+Modify  | 41.129     | 41.129     | 41.129     |   0.0 | 72.13
+Other   |            | 0.01535    |            |       |  0.03
+
+Nlocal:            528 ave         528 max         528 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           8778 ave        8778 max        8778 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         297214 ave      297214 max      297214 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       594428 ave      594428 max      594428 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 594428
+Ave neighs/atom = 1125.8106
+Ave special neighs/atom = 0
+Neighbor list builds = 18
+Dangerous builds = 0
+unfix        integ
+timestep     0.001
+fix          integ all rigid/nvt/small molecule temp 298 298 0.1
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  176 rigid bodies with 528 atoms
+  1.0000026 = max distance from body owner to body atom
+run          3000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+WARNING: For better accuracy use 'pair_modify table 0' (src/kspace.cpp:368)
+  G vector (1/distance) = 0.35
+  grid = 24 30 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 2.9900356e-05
+  estimated relative force accuracy = 2.0764648e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 30969 14400
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0) -- pe + E_self is the energy the forces integrate
+samqeq: recip_self ACTIVE at run start (step 2000): 0.39457 raw = 5.6816 eV/e, K=16 deterministic-probe route, calibration #1 at step 0 on the 24x30x20 mesh; first at this mesh 0.39457 (step 0), drift +0.000%
+samqeq: setup solve SKIPPED at run-boundary step 2000 (2nd+ run / restart): the setup forces use the STORED atom->q (the first in-loop step re-solves) -- use `reset_timestep 0` before the run to force a solve
+Per MPI rank memory allocation (min/avg/max) = 45.27 | 45.27 | 45.27 Mbytes
+   Step          Temp          PotEng         c_qmax    
+      2000   295.54257     -208.83372      1.4836583    
+samqeq SOLVER-DIAG step 2200: CG 19 iters (=19 matvecs), resid/b=9.59e-08
+samqeq SOLVER-DIAG step 2400: CG 20 iters (=20 matvecs), resid/b=4.98e-08
+      2500   294.10551     -207.52901      1.4171341    
+samqeq SOLVER-DIAG step 2600: CG 19 iters (=19 matvecs), resid/b=7.68e-08
+samqeq SOLVER-DIAG step 2800: CG 20 iters (=20 matvecs), resid/b=5.02e-08
+samqeq SOLVER-DIAG step 3000: CG 19 iters (=19 matvecs), resid/b=9.15e-08
+      3000   307.9741      -207.65044      1.4416064    
+samqeq SOLVER-DIAG step 3200: CG 19 iters (=19 matvecs), resid/b=8.34e-08
+samqeq SOLVER-DIAG step 3400: CG 20 iters (=20 matvecs), resid/b=4.96e-08
+      3500   316.4817      -207.1953       1.3715748    
+samqeq SOLVER-DIAG step 3600: CG 19 iters (=19 matvecs), resid/b=7.43e-08
+samqeq SOLVER-DIAG step 3800: CG 20 iters (=20 matvecs), resid/b=4.05e-08
+samqeq SOLVER-DIAG step 4000: CG 19 iters (=19 matvecs), resid/b=9.39e-08
+      4000   277.69306     -208.51655      1.383186     
+samqeq SOLVER-DIAG step 4200: CG 20 iters (=20 matvecs), resid/b=5.20e-08
+samqeq SOLVER-DIAG step 4400: CG 19 iters (=19 matvecs), resid/b=9.66e-08
+      4500   288.41995     -208.41193      1.3932899    
+samqeq SOLVER-DIAG step 4600: CG 19 iters (=19 matvecs), resid/b=8.57e-08
+samqeq SOLVER-DIAG step 4800: CG 20 iters (=20 matvecs), resid/b=3.85e-08
+samqeq SOLVER-DIAG step 5000: CG 20 iters (=20 matvecs), resid/b=4.98e-08
+      5000   301.63105     -207.43429      1.3965446    
+Loop time of 88.8062 on 1 procs for 3000 steps with 528 atoms
+
+Performance: 2.919 ns/day, 8.223 hours/ns, 33.781 timesteps/s, 17.837 katom-step/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 22.276     | 22.276     | 22.276     |   0.0 | 25.08
+Bond    | 0.00071795 | 0.00071795 | 0.00071795 |   0.0 |  0.00
+Kspace  | 1.9424     | 1.9424     | 1.9424     |   0.0 |  2.19
+Neigh   | 1.0346     | 1.0346     | 1.0346     |   0.0 |  1.17
+Comm    | 0.10709    | 0.10709    | 0.10709    |   0.0 |  0.12
+Output  | 0.00019713 | 0.00019713 | 0.00019713 |   0.0 |  0.00
+Modify  | 63.42      | 63.42      | 63.42      |   0.0 | 71.41
+Other   |            | 0.0254     |            |       |  0.03
+
+Nlocal:            528 ave         528 max         528 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           8760 ave        8760 max        8760 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         297251 ave      297251 max      297251 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       594502 ave      594502 max      594502 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 594502
+Ave neighs/atom = 1125.9508
+Ave special neighs/atom = 0
+Neighbor list builds = 108
+Dangerous builds = 0
+Total wall time: 0:02:25

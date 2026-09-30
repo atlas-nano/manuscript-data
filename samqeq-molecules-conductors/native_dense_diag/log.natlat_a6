@@ -1,0 +1,182 @@
+LAMMPS (30 Mar 2026)
+  using 1 OpenMP thread(s) per MPI task
+# Single-point charge solve (run 0) of the NATIVE fluctuating-charge water of Section sec:water on a
+# stored frame, at a tight CG tolerance, dumping the solved charges with 17 significant digits.
+# Model lines are those of /home/tpascal/codes/samQEq/examples/samqeq/in.npt_canon (512 molecules,
+# coul/shield/intra 5.0 all, pair_coeff 1.11, pppm/samqeq, swb 10.0, recip_self pinned 0.37933).
+#   -var data <data file>   frame written by write_data (e.g. ../tolscan_npt_20260916/npt.data)
+#   -var acc  <pppm accuracy>   1.0e-6 is the deck value; 1.0e-8 tests the particle-mesh limit
+#   -var tol  <qeq/sam tolerance>   1.0e-10 here (deck value 1.0e-5)
+#   -var tag  <label>
+variable         data index none
+variable         acc  index 1.0e-6
+variable         tol  index 1.0e-10
+variable         tag  index nat_a6
+
+units            metal
+atom_style       full
+boundary         p p p
+
+if "${data} == none" then   "lattice sc 3.1"   "region box block 0 8 0 8 0 8"   "create_box 2 box"   "mass 1 15.9994"   "mass 2 1.008"   "molecule h2o spcfq.mol"   "create_atoms 0 box mol h2o 12345"   "set type 1 charge -0.85"   "set type 2 charge 0.425" else   "read_data ${data}"
+lattice sc 3.1
+Lattice spacing in x,y,z = 3.1 3.1 3.1
+region box block 0 8 0 8 0 8
+create_box 2 box
+Created orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  1 by 1 by 1 MPI processor grid
+mass 1 15.9994
+mass 2 1.008
+molecule h2o spcfq.mol
+Read molecule template h2o:
+# SPC-FQ 3-site water: O(type1) + 2H(type2), all charged via samqeq. SPC geom rOH=1.0 theta=109.47.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms 0 box mol h2o 12345
+Created 1536 atoms
+  using lattice units in orthogonal box = (0 0 0) to (24.8 24.8 24.8)
+  create_atoms CPU = 0.006 seconds
+set type 1 charge -0.85
+Setting atom values ...
+  512 settings made for charge
+set type 2 charge 0.425
+Setting atom values ...
+  1024 settings made for charge
+
+group            fq type 1 2
+1536 atoms in group fq
+
+pair_style       hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 5.0 all
+pair_coeff       1 1 lj/cut 0.01275 3.144
+pair_coeff       1 2 lj/cut 0.0 1.0
+pair_coeff       2 2 lj/cut 0.0 1.0
+pair_coeff       * * coul/long
+pair_coeff       * * coul/shield/intra 1.11
+kspace_style     pppm/samqeq ${acc}
+kspace_style     pppm/samqeq 1.0e-6
+neighbor         2.0 bin
+
+fix              chg fq qeq/sam 1 0.0 10.0 ${tol} spcfq_expt.param
+fix              chg fq qeq/sam 1 0.0 10.0 1.0e-10 spcfq_expt.param
+fix_modify       chg recip_self 0.37933
+samqeq: grid reciprocal self-term PINNED at recip_self=0.37933 (raw) = 5.4622 eV/e (not measured; operator is decomposition- and atom-order-independent)
+fix_modify       chg solver cg nofallback
+samqeq: lr solver = CG (symmetric, indefinite-safe)
+
+thermo_style     custom step pe ecoul elong evdwl press
+thermo_modify    format float %.12g
+
+dump             d1 all custom 1 frame_${tag}.dump id mol type q x y z
+dump             d1 all custom 1 frame_natlat_a6.dump id mol type q x y z
+dump_modify      d1 sort id format line "%d %d %d %.17g %.17g %.17g %.17g"
+
+reset_timestep   0
+run              0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.33957131
+  grid = 36 36 36
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4063135e-05
+  estimated relative force accuracy = 9.7663066e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 79507 46656
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+samqeq: E_self = sum(chi q + 1/2 eta qs^2) INCLUDED in pe/etotal (fix_modify chg energy yes; eselfref qs = q - q0 - redox_dp) -- pe + E_self is the energy the forces integrate
+samqeq: long-range EWALD (reciprocal-in-matvec) on (alpha=g_ewald=0.3396, swb=10.00); pair MUST be lj/cut/coul/long + kspace pppm/samqeq
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair lj/cut, perpetual, copy from (2)
+      attributes: half, newton on, cut 12
+      pair build: copy
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, half/full from (5)
+      attributes: half, newton on, cut 12
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix qeq/sam, perpetual, half/full from (5)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+samqeq: recip_self ACTIVE at run start (step 0): 0.37933 raw = 5.4622 eV/e, PINNED (fix_modify recip_self)
+samqeq SOLVER-DIAG step 0: CG 25 iters (=25 matvecs), resid/b=9.03e-11
+Per MPI rank memory allocation (min/avg/max) = 55.74 | 55.74 | 55.74 Mbytes
+   Step         PotEng         E_coul         E_long         E_vdwl         Press     
+         0  -371.672827867 -1479.37909048 -1022.31034472 40.826776417 -1250.5001474
+Loop time of 1.836e-06 on 1 procs for 0 steps with 1536 atoms
+
+435.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 0          | 0          | 0          |   0.0 |  0.00
+Kspace  | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.836e-06  |            |       |100.00
+
+Nlocal:           1536 ave        1536 max        1536 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           9175 ave        9175 max        9175 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         556971 ave      556971 max      556971 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.11394e+06 ave 1.11394e+06 max 1.11394e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1113942
+Ave neighs/atom = 725.22266
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+print            "RUN0_DONE tag=${tag} acc=${acc} tol=${tol} pe=$(pe:%.12g)"
+RUN0_DONE tag=natlat_a6 acc=1.0e-6 tol=1.0e-10 pe=-371.672827867
+Total wall time: 0:00:00

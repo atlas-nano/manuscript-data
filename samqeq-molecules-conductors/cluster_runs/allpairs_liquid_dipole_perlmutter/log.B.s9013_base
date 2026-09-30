@@ -1,0 +1,428 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-542-g4e5eb25ab6-modified)
+  using 1 OpenMP thread(s) per MPI task
+# TIP4P-FQ liquid with the TRUE SLATER-OVERLAP kernel (s38 `shield slater`): Rick's raw zetas,
+# NO refit. Target: close the gauss-kernel port's -4% mu (2.53 vs Rick 2.637) — the deviation was
+# the intermolecular J at intermediate r, exactly what the exact kernel fixes.
+# Derived from in.tip4pfq_xl (KERNEL-REFIT gauss port); 256-molecule box built from Rick's own equilibrated
+# mdtpn.dat config (build_box.py), vol=7660.31 A^3, rho=1.0 g/cc, fixed (NVT).
+# Kernel: gaussian/pqeq erf(a_ij r)/r, fit EXACTLY to Rick's jrab() J_HH(1.5139)
+# and J_OH(r_MH=0.8735) (see fit_j.py) -- the physically-operative rigid-body
+# distances. Single `run` command (multi-run is a known samQEq calibration
+# artifact); tail-window ave/time blocks report thermalized averages.
+units           metal
+atom_style      full
+boundary        p p p
+read_data       tip4pfq_liquid.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (19.712825 19.712825 19.712825)
+  3 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1024 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 0) to (19.712825 19.712825 19.712825)
+  3 by 2 by 2 MPI processor grid
+  reading bonds ...
+  512 bonds
+  reading angles ...
+  256 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.009 seconds
+
+group           watO  type 1
+256 atoms in group watO
+group           watH  type 2
+512 atoms in group watH
+group           watM  type 3
+256 atoms in group watM
+group           fq    type 2 3
+768 atoms in group fq
+
+# LJ on O-O only (Table I): eps=0.2862 kcal/mol=0.012412 eV, sigma=3.159 A
+pair_style      hybrid/overlay lj/cut 10.0 coul/long 10.0 coul/shield/intra 5.0 slater 2s 1 3
+pair_coeff      1 1 lj/cut 0.012412 3.159
+pair_coeff      1 2 lj/cut 0.0 1.0
+pair_coeff      1 3 lj/cut 0.0 1.0
+pair_coeff      2 2 lj/cut 0.0 1.0
+pair_coeff      2 3 lj/cut 0.0 1.0
+pair_coeff      3 3 lj/cut 0.0 1.0
+pair_coeff      * * coul/long
+pair_coeff      1 1 coul/shield/intra 3.0803    # zeta_O (2s), 1/Angstrom
+pair_coeff      2 2 coul/shield/intra 1.7007    # zeta_H (1s)
+pair_coeff      3 3 coul/shield/intra 3.0803    # zeta_M (borrows O's 2s form factor)
+pair_coeff      1 2 coul/shield/intra 2.288813
+pair_coeff      1 3 coul/shield/intra 3.080300
+pair_coeff      2 3 coul/shield/intra 2.288813
+# ^ s38 FIX: hybrid/overlay contributes ZERO for unset sub-style cross pairs (no auto init_one
+#   mixing, no warning) — the unset M-H pair hid a +3.2 eV/mol pe error (U_bind -82 naive / -13.6
+#   'corrected' -> -9.90 = Rick EXACT once fixed). Cross values: sqrt-mixed (used by cbrt mode;
+#   pqeq/slater kernels read type diagonals only). See ubind/DIAGNOSIS_UBIND.md.
+
+special_bonds   lj/coul 1.0e-8 1.0e-8 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1e-08    1e-08    1       
+  special bond factors coul:  1e-08    1e-08    1       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+kspace_style    pppm/samqeq 1.0e-5
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+fix             chg fq qeq/sam 1 0.0 10.0 1.0e-5 water4_liquid_slater.param
+fix_modify      chg shield slater 2s 1 3
+samqeq: lr-solve shielding = Slater J(r) (Rick JCP101,6141) (param 4th col = zeta (Slater exponent, 1/Angstrom)); routed through compute_H + add_drude_field + the legacy gas path (calc_Hval)
+fix_modify      chg energy yes
+fix_modify      chg xl 2.6e-6 1.0
+samqeq: extended-Lagrangian charge dynamics ON (q_mass=2.6e-06 eV ps^2/e^2, q_tdamp=1 ps); pure friction (T_q=0); charges propagate by velocity-Verlet (no per-step solve)
+# ROOT CAUSE (found via a dt-scan diagnostic, in.diag_dt.tmp/in.diag_dt2.tmp, logs
+# log.diag_dt/log.diag_dt2): dt=0.5 fs (the task's suggested value) is NOT a stable
+# integration step for this system -- the intramolecular M-H charge oscillator is very
+# stiff (r_MH=0.87 A, eta_M/H~16/15 eV) and the rigid-body torque response amplifies any
+# discretization error into a genuine near-critical SCF catastrophe within a few hundred
+# steps (confirmed: NEITHER an offset-quartic wall NOR the rnd charge-freeze safeguard
+# cured it at dt=0.5fs -- both only delayed/relocated the same blow-up, proof this is an
+# INTEGRATION-timestep problem, not a kernel-fit or Hessian-singularity problem). At
+# dt=0.1 and dt=0.2 fs the SAME deck (no stabilizers needed at all) is fully stable over
+# the tested window with mu/qM/qH/T all physically sane and drifting toward the targets.
+# Using dt=0.2 fs (4x smaller than the task's suggested 0.5 fs) here.
+
+compute         qMpa watM property/atom q
+compute         qMc  watM reduce ave c_qMpa
+compute         qHpa watH property/atom q
+compute         qHc  watH reduce ave c_qHpa
+compute         dip all dipole/samqeq
+variable        mu   equal c_dip
+variable        qM   equal c_qMc
+variable        qH   equal c_qHc
+variable        pemol equal pe/256.0
+variable        T equal temp
+variable        P equal press
+
+timestep        0.00025
+velocity        all create 298.0 ${seed} mom yes rot yes dist gaussian
+velocity        all create 298.0 9013 mom yes rot yes dist gaussian
+fix             rig all rigid/nvt/small molecule temp 298.0 298.0 0.02
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  256 rigid bodies with 1024 atoms
+  0.87348128 = max distance from body owner to body atom
+
+thermo          250
+thermo_style    custom step temp press density pe v_pemol v_mu v_qM v_qH
+thermo_modify   flush yes
+
+# --- tail-window averages inside the ONE run (last ~1 ps of a 3 ps / 15000-step run) ---
+compute         rdfOO all rdf 100 1 1
+fix             rdfavg all ave/time 50 100 15000 c_rdfOO[*] file rdf_${seed}_base.dat mode vector
+fix             rdfavg all ave/time 50 100 15000 c_rdfOO[*] file rdf_9013_base.dat mode vector
+fix             propavg all ave/time 25 200 5000 v_mu v_qM v_qH v_T v_P v_pemol ave one file props_${seed}_base.dat
+fix             propavg all ave/time 25 200 5000 v_mu v_qM v_qH v_T v_P v_pemol ave one file props_9013_base.dat
+
+dump            tr all custom 1000 trj_${seed}_base.lammpstrj id type xu yu zu q
+dump            tr all custom 1000 trj_9013_base.lammpstrj id type xu yu zu q
+run             40000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix acks2/reaxff command: https://doi.org/10.1137/18M1224684
+
+@Article{O'Hearn2020,
+ author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J.\ Sci.\ Comput.},
+ year =    2020,
+ volume =  42,
+ number =  1,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.31499941
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0001309434
+  estimated relative force accuracy = 9.0935157e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 4046 700
+samqeq: pair coul/shield/intra Slater-overlap J(r) tables built (6 unique type pairs, 2000 pts each, r in [0.02,5])
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:198)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:200)
+WARNING: Angles are defined but no angle style is set (src/force.cpp:203)
+WARNING: Likewise 1-3 special neighbor interactions != 1.0 (src/force.cpp:205)
+samqeq: Slater-overlap J(r) tables built (6 unique type pairs, 2000 pts each, r in [0.02,10])
+samqeq: long-range EWALD (reciprocal-in-matvec) on (alpha=g_ewald=0.3150, swb=10.00); pair MUST be lj/cut/coul/long + kspace pppm/samqeq
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 4 4 4
+  6 neighbor lists, perpetual/occasional/extra = 5 1 0
+  (1) pair lj/cut, perpetual, copy from (2)
+      attributes: half, newton on, cut 12
+      pair build: copy
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual, half/full from (6)
+      attributes: half, newton on, cut 12
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (3) pair coul/shield/intra, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) compute rdf, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) fix qeq/sam, perpetual, half/full from (6)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (6) fix qeq/sam, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 21.99 | 22.17 | 22.45 Mbytes
+   Step          Temp          Press         Density         PotEng        v_pemol          v_mu           v_qM           v_qH     
+WARNING: compute dipole/samqeq: molecule 21 has net charge 0.000001; its dipole is origin-dependent (src/SAMQEQ/compute_dipole_samqeq.cpp:165)
+         0   295.60965     -30514.066      0.99973842    -449.30795     -1.7551092      2.652567      -1.252331       0.6261655    
+samqeq: calibrated grid reciprocal self-term recip_self=0.35523 (raw) = 5.1152 eV/e (subtracted so the QEq diagonal stays = eta)
+       250   289.55804      1269.2846      0.99973842    -447.0905      -1.7464473      2.5756416     -1.2212433      0.61062165   
+       500   304.92772      2551.949       0.99973842    -446.36304     -1.7436056      2.5052146     -1.1893847      0.59469238   
+       750   290.09074      4007.3313      0.99973842    -442.98122     -1.7303954      2.4526274     -1.1626344      0.58131721   
+      1000   303.7694       2775.2004      0.99973842    -444.14962     -1.7349594      2.4416441     -1.1589731      0.57948654   
+      1250   308.03273      2379.2724      0.99973842    -442.97465     -1.7303697      2.4405915     -1.158414       0.579207     
+      1500   290.77054      1369.2376      0.99973842    -442.52715     -1.7286217      2.443609      -1.1595138      0.57975692   
+      1750   302.54854      1811.2715      0.99973842    -442.59459     -1.7288851      2.4553386     -1.1647682      0.5823841    
+      2000   271.41774     -61.634269      0.99973842    -443.58582     -1.7327571      2.4599706     -1.1681183      0.58405917   
+      2250   303.77594     -288.43112      0.99973842    -443.59414     -1.7327896      2.4717412     -1.1730001      0.58650008   
+      2500   303.72413      1652.7954      0.99973842    -441.17463     -1.7233384      2.4668577     -1.1712683      0.58563418   
+      2750   295.4777       169.61075      0.99973842    -442.73814     -1.7294458      2.4740403     -1.1741533      0.58707667   
+      3000   291.9774       386.44623      0.99973842    -442.69292     -1.7292692      2.4803596     -1.1776347      0.58881735   
+      3250   297.50517      747.27545      0.99973842    -443.64588     -1.7329917      2.4875184     -1.1813934      0.5906967    
+      3500   297.99552      597.4309       0.99973842    -444.57288     -1.7366128      2.4989411     -1.1868563      0.59342817   
+      3750   268.57685      1378.8691      0.99973842    -443.59237     -1.7327827      2.5024956     -1.1869948      0.59349742   
+      4000   296.27935      661.46787      0.99973842    -444.68142     -1.7370368      2.4937952     -1.1835592      0.59177959   
+      4250   309.51881      1545.4693      0.99973842    -443.67572     -1.7331083      2.4927446     -1.1813957      0.59069784   
+      4500   299.92321      542.60315      0.99973842    -444.3141      -1.7356019      2.4813878     -1.1776688      0.58883441   
+      4750   290.37082      1434.7485      0.99973842    -443.28199     -1.7315703      2.4787718     -1.1769462      0.58847313   
+      5000   304.17047      2512.8566      0.99973842    -441.67188     -1.7252808      2.4718539     -1.1732037      0.58660185   
+      5250   308.87156     -288.26192      0.99973842    -443.6851      -1.7331449      2.4692555     -1.1712911      0.58564555   
+      5500   299.21057      155.1471       0.99973842    -442.11251     -1.727002       2.4607815     -1.1671231      0.58356158   
+      5750   295.29807      323.34874      0.99973842    -442.44846     -1.7283143      2.4603075     -1.1679381      0.58396905   
+      6000   297.29662      1953.5882      0.99973842    -440.63183     -1.7212181      2.4651963     -1.1686716      0.58433581   
+      6250   290.64483      1255.4547      0.99973842    -442.68992     -1.7292575      2.4747338     -1.1739564      0.58697821   
+      6500   267.62103      2124.7755      0.99973842    -442.01067     -1.7266042      2.4784591     -1.1752071      0.58760357   
+      6750   292.21951      858.64751      0.99973842    -442.35091     -1.7279332      2.4704577     -1.1730704      0.58653523   
+      7000   321.42924      902.48478      0.99973842    -442.6074      -1.7289352      2.4726901     -1.1733276      0.58666381   
+      7250   299.51227      542.21178      0.99973842    -442.46348     -1.728373       2.4701622     -1.172536       0.586268     
+      7500   290.682        1164.6508      0.99973842    -442.30791     -1.7277653      2.4733438     -1.1739164      0.58695821   
+      7750   295.55822      1699.3586      0.99973842    -442.42397     -1.7282186      2.4766962     -1.1743408      0.5871704    
+      8000   291.08548      62.48342       0.99973842    -443.67628     -1.7331105      2.4776004     -1.1756855      0.58784276   
+      8250   307.01321      1999.8272      0.99973842    -441.78505     -1.7257229      2.4741043     -1.1744435      0.58722176   
+      8500   293.03044     -415.28667      0.99973842    -443.05483     -1.7306829      2.466272      -1.1717144      0.58585724   
+      8750   316.96609      1185.9967      0.99973842    -442.21055     -1.727385       2.4719178     -1.1733002      0.58665013   
+      9000   300.55136      1515.084       0.99973842    -441.96579     -1.7264289      2.476307      -1.1730278      0.58651391   
+      9250   311.67297      2046.9525      0.99973842    -441.54156     -1.7247717      2.4774573     -1.1749386      0.58746934   
+      9500   301.68267      399.49555      0.99973842    -443.56799     -1.7326875      2.4780899     -1.1756816      0.58784079   
+      9750   304.06789     -722.14153      0.99973842    -440.74246     -1.7216502      2.4497088     -1.1626451      0.58132257   
+     10000   300.53018     -811.01655      0.99973842    -442.06538     -1.7268179      2.4570668     -1.166037       0.58301852   
+     10250   308.50294      712.1684       0.99973842    -440.27513     -1.7198247      2.4538419     -1.1638735      0.58193677   
+     10500   289.71262      191.8859       0.99973842    -439.96379     -1.7186086      2.4511432     -1.1628024      0.58140122   
+     10750   295.61308      1831.4365      0.99973842    -438.95589     -1.7146715      2.4569598     -1.1651785      0.58258928   
+     11000   295.67006      566.05316      0.99973842    -440.49754     -1.7206935      2.4561487     -1.1654362      0.58271811   
+     11250   284.44868      816.17733      0.99973842    -439.49522     -1.7167782      2.452941      -1.1625471      0.58127355   
+     11500   295.33524      755.25115      0.99973842    -440.58472     -1.7210341      2.4553139     -1.1645456      0.58227282   
+     11750   314.42409      609.23541      0.99973842    -440.69271     -1.7214559      2.456332      -1.1653034      0.58265171   
+     12000   295.51571     -677.87393      0.99973842    -441.1149      -1.7231051      2.4499263     -1.1628317      0.58141588   
+     12250   315.95776      7.6753997      0.99973842    -440.51771     -1.7207723      2.453118      -1.1636691      0.58183455   
+     12500   288.92525      141.8312       0.99973842    -439.50646     -1.7168221      2.4452299     -1.1602284      0.58011422   
+     12750   298.58709     -74.894256      0.99973842    -441.27947     -1.7237479      2.4566415     -1.1658817      0.58294085   
+     13000   320.4703       619.52994      0.99973842    -441.59099     -1.7249648      2.4652147     -1.1691294      0.5845647    
+     13250   281.73232      990.14941      0.99973842    -441.34948     -1.7240214      2.4611563     -1.1690101      0.58450506   
+     13500   292.01428      1275.5952      0.99973842    -441.37973     -1.7241396      2.4644102     -1.1697865      0.58489325   
+     13750   298.75949      2567.1484      0.99973842    -440.05614     -1.7189693      2.4678036     -1.1711176      0.58555882   
+     14000   279.85484      1507.0696      0.99973842    -440.88365     -1.7222018      2.4663466     -1.1696378      0.5848189    
+     14250   294.37663      492.95374      0.99973842    -440.10575     -1.7191631      2.4571611     -1.1648474      0.58242374   
+     14500   298.33164      859.11017      0.99973842    -440.32761     -1.7200297      2.458764      -1.1658685      0.58293426   
+     14750   296.69099     -242.88653      0.99973842    -440.0841      -1.7190785      2.4465509     -1.1613052      0.58065263   
+     15000   313.28696      540.22345      0.99973842    -439.82618     -1.718071       2.4526509     -1.1643984      0.58219921   
+     15250   298.3109      -625.95039      0.99973842    -441.96571     -1.7264285      2.4597923     -1.1674116      0.58370582   
+     15500   286.52542      448.9284       0.99973842    -440.2158      -1.719593       2.4508092     -1.163909       0.58195453   
+     15750   303.61462     -342.44434      0.99973842    -441.40858     -1.7242523      2.4542528     -1.1648158      0.58240792   
+     16000   301.72586      133.76982      0.99973842    -442.30127     -1.7277393      2.4655828     -1.1700868      0.5850434    
+     16250   314.57703      668.18         0.99973842    -441.92567     -1.7262721      2.46555       -1.1696198      0.58480991   
+     16500   315.43417      935.77229      0.99973842    -441.04335     -1.7228256      2.4590067     -1.1669434      0.58347171   
+     16750   296.84482     -744.89592      0.99973842    -442.84196     -1.7298514      2.4633016     -1.1688935      0.58444675   
+     17000   303.8606       1822.3773      0.99973842    -439.95991     -1.7185934      2.4625403     -1.1669028      0.5834514    
+     17250   303.58657      1104.1418      0.99973842    -439.17313     -1.71552        2.4499745     -1.16232        0.58116002   
+     17500   310.99532     -577.79019      0.99973842    -442.11527     -1.7270128      2.4597211     -1.1668047      0.58340236   
+     17750   313.63369      781.00429      0.99973842    -440.84438     -1.7220483      2.45943       -1.1656722      0.58283609   
+     18000   296.08908      1065.2111      0.99973842    -442.29167     -1.7277019      2.4743757     -1.1727217      0.58636084   
+     18250   285.36015     -97.700753      0.99973842    -441.25069     -1.7236355      2.4579205     -1.1658534      0.58292672   
+     18500   301.76559      803.54634      0.99973842    -441.66902     -1.7252696      2.4672001     -1.1698076      0.58490382   
+     18750   307.78679      312.66844      0.99973842    -440.77572     -1.7217802      2.4561027     -1.1655625      0.58278127   
+     19000   280.99496      834.43055      0.99973842    -440.42904     -1.7204259      2.4589982     -1.1666472      0.58332361   
+     19250   298.15967      1807.328       0.99973842    -439.59674     -1.7171748      2.460073      -1.1655058      0.58275292   
+     19500   284.44758     -129.26713      0.99973842    -441.85019     -1.7259773      2.4634176     -1.1670282      0.58351409   
+     19750   310.20655     -87.340026      0.99973842    -443.2346      -1.7313852      2.4740622     -1.1722798      0.58613991   
+     20000   296.61209     -888.08231      0.99973842    -442.47392     -1.7284138      2.4600874     -1.1674333      0.58371665   
+     20250   303.15159      282.4037       0.99973842    -441.89046     -1.7261346      2.4639997     -1.1683359      0.58416798   
+     20500   298.89688      121.19156      0.99973842    -442.40542     -1.7281462      2.4633137     -1.1697901      0.58489505   
+     20750   302.26461      1427.9421      0.99973842    -442.18011     -1.727266       2.4737116     -1.1731299      0.58656496   
+     21000   281.61126      2026.1187      0.99973842    -440.23464     -1.7196666      2.4657442     -1.1691663      0.58458314   
+     21250   291.18632      1875.128       0.99973842    -440.39632     -1.7202981      2.4647251     -1.1688849      0.58444247   
+     21500   281.67173      864.24509      0.99973842    -441.40326     -1.7242315      2.4650957     -1.1696138      0.58480691   
+     21750   286.61879     -297.08121      0.99973842    -441.08134     -1.722974       2.4570549     -1.1650594      0.58252971   
+     22000   305.7608       521.66977      0.99973842    -440.83078     -1.7219952      2.460005      -1.1672504      0.58362519   
+     22250   284.94424      92.645331      0.99973842    -441.61531     -1.7250598      2.4602242     -1.1683165      0.58415826   
+     22500   302.44417      327.88397      0.99973842    -441.77217     -1.7256725      2.465077      -1.1699002      0.58495012   
+     22750   299.85413      790.38863      0.99973842    -443.23354     -1.731381       2.4746477     -1.1743059      0.58715297   
+     23000   303.65455      479.11509      0.99973842    -441.13145     -1.7231697      2.4594585     -1.1674317      0.58371587   
+     23250   307.4382       263.89909      0.99973842    -441.86741     -1.7260446      2.4639879     -1.1685382      0.5842691    
+     23500   294.93302      660.38154      0.99973842    -440.02384     -1.7188431      2.4514849     -1.1631504      0.58157523   
+     23750   277.15991      124.16212      0.99973842    -440.87556     -1.7221702      2.4537788     -1.1647522      0.58237613   
+     24000   301.84912      835.22136      0.99973842    -439.9228      -1.7184484      2.4516149     -1.1638843      0.58194215   
+     24250   287.82545      0.99014102     0.99973842    -441.59044     -1.7249627      2.4621401     -1.1684708      0.58423541   
+     24500   302.07734     -644.16712      0.99973842    -441.71303     -1.7254415      2.4547172     -1.1656845      0.58284224   
+     24750   308.59661      1415.9428      0.99973842    -440.77108     -1.721762       2.4648346     -1.1691352      0.58456759   
+     25000   304.12529      1011.1781      0.99973842    -441.37886     -1.7241362      2.4694034     -1.1710535      0.58552675   
+     25250   296.97191      1360.8061      0.99973842    -441.96518     -1.7264265      2.4751199     -1.1725814      0.58629069   
+     25500   292.5819       506.97559      0.99973842    -441.24547     -1.7236151      2.4619949     -1.1679037      0.58395187   
+     25750   319.56015      790.6382       0.99973842    -440.00977     -1.7187881      2.4577623     -1.1654859      0.58274299   
+     26000   298.88265      966.64701      0.99973842    -438.75677     -1.7138936      2.4454601     -1.1608879      0.58044398   
+     26250   274.83447     -421.33097      0.99973842    -441.37001     -1.7241016      2.4568374     -1.1655439      0.58277194   
+     26500   316.29339     -186.82126      0.99973842    -440.83616     -1.7220162      2.4520587     -1.1642908      0.58214542   
+     26750   310.61929     -405.56584      0.99973842    -441.98901     -1.7265196      2.4607801     -1.1677015      0.58385078   
+     27000   291.09216      201.47073      0.99973842    -440.78557     -1.7218186      2.4556245     -1.1659242      0.58296211   
+     27250   287.20987      488.73527      0.99973842    -442.18421     -1.7272821      2.4667547     -1.1705459      0.58527294   
+     27500   283.41716      519.44326      0.99973842    -442.25118     -1.7275437      2.4704919     -1.1722551      0.58612757   
+     27750   275.71489      797.71775      0.99973842    -440.81058     -1.7219163      2.4631922     -1.1681387      0.58406934   
+     28000   276.77589      345.6928       0.99973842    -442.05219     -1.7267664      2.4689933     -1.1709034      0.58545172   
+     28250   303.08091     -95.186044      0.99973842    -441.76348     -1.7256386      2.4607798     -1.1681525      0.58407626   
+     28500   300.52968      589.68833      0.99973842    -441.53962     -1.7247641      2.4636809     -1.1693438      0.58467192   
+     28750   288.66226      355.91612      0.99973842    -441.60397     -1.7250155      2.4621508     -1.1681189      0.58405946   
+     29000   291.32492      981.10027      0.99973842    -440.26328     -1.7197785      2.456949      -1.1662803      0.58314018   
+     29250   286.07167      1210.9099      0.99973842    -441.14677     -1.7232296      2.4638045     -1.1696324      0.5848162    
+     29500   302.33887     -301.09794      0.99973842    -442.16921     -1.7272235      2.4618585     -1.167849       0.58392451   
+     29750   301.63014     -1612.6294      0.99973842    -442.37598     -1.7280312      2.4586918     -1.1655925      0.58279624   
+     30000   313.41411     -274.55026      0.99973842    -443.00615     -1.7304928      2.4689747     -1.1703937      0.58519684   
+     30250   310.50638      1028.6909      0.99973842    -443.20232     -1.731259       2.4789752     -1.1761772      0.5880886    
+     30500   293.51251      1029.09        0.99973842    -442.99526     -1.7304502      2.4771002     -1.1751732      0.58758661   
+     30750   302.31427      1024.6287      0.99973842    -442.28575     -1.7276787      2.4714959     -1.1731263      0.58656318   
+     31000   285.31177      1406.1708      0.99973842    -442.22149     -1.7274277      2.4748702     -1.1736746      0.58683729   
+     31250   299.96416      1405.3418      0.99973842    -442.89307     -1.730051       2.4795012     -1.1772472      0.5886236    
+     31500   306.032        1327.3416      0.99973842    -443.75839     -1.7334312      2.4845225     -1.1792212      0.58961063   
+     31750   307.21609      725.70509      0.99973842    -443.56654     -1.7326818      2.4811998     -1.1771926      0.5885963    
+     32000   301.27067      736.29735      0.99973842    -442.75769     -1.7295222      2.4750706     -1.1731488      0.58657443   
+     32250   301.5193       732.16716      0.99973842    -440.64374     -1.7212646      2.4578318     -1.1667256      0.58336282   
+     32500   302.3422       418.89242      0.99973842    -441.13961     -1.7232016      2.4601037     -1.1674455      0.58372276   
+     32750   290.88438     -299.1405       0.99973842    -440.91194     -1.7223123      2.4504119     -1.1635135      0.58175676   
+     33000   303.55044     -526.93452      0.99973842    -441.66406     -1.7252502      2.4537147     -1.1652798      0.58263992   
+     33250   296.8148       314.03915      0.99973842    -440.95456     -1.7224788      2.4555897     -1.1651852      0.58259262   
+     33500   296.23372      111.9595       0.99973842    -441.45678     -1.7244406      2.4583547     -1.1668402      0.58342009   
+     33750   286.97369      1246.9159      0.99973842    -440.24599     -1.7197109      2.4600161     -1.1667136      0.58335684   
+     34000   281.85838      332.42246      0.99973842    -439.5706      -1.7170726      2.4465167     -1.1610567      0.58052835   
+     34250   305.57823      394.75686      0.99973842    -441.75354     -1.7255998      2.4643824     -1.1691235      0.58456177   
+     34500   307.83414      64.034422      0.99973842    -442.98605     -1.7304143      2.4674242     -1.1710212      0.58551063   
+     34750   308.15658      593.66997      0.99973842    -441.47075     -1.7244951      2.465344      -1.1695783      0.58478914   
+     35000   287.02735      879.54217      0.99973842    -442.4095      -1.7281621      2.4744171     -1.1737657      0.58688288   
+     35250   295.70691      1555.1354      0.99973842    -443.16018     -1.7310944      2.4802666     -1.1768995      0.58844975   
+     35500   300.51068      601.7791       0.99973842    -442.05174     -1.7267646      2.4658492     -1.1698985      0.58494927   
+     35750   295.48772      980.64616      0.99973842    -440.78486     -1.7218159      2.4615439     -1.1675287      0.58376434   
+     36000   278.44755      128.12236      0.99973842    -441.27698     -1.7237382      2.4579419     -1.1667921      0.58339605   
+     36250   293.52331      1837.4522      0.99973842    -440.39645     -1.7202986      2.4634201     -1.1690643      0.58453215   
+     36500   291.66017      1053.5501      0.99973842    -441.06547     -1.722912       2.4618937     -1.168261       0.58413049   
+     36750   299.89574      234.07974      0.99973842    -441.19231     -1.7234075      2.4575136     -1.1657839      0.58289195   
+     37000   309.33833      622.21343      0.99973842    -442.28347     -1.7276698      2.4683404     -1.1708341      0.58541704   
+     37250   300.51283      1101.5367      0.99973842    -441.50165     -1.7246158      2.4716195     -1.1715343      0.58576718   
+     37500   292.69202      1478.4993      0.99973842    -441.57678     -1.7249093      2.4713117     -1.1721732      0.58608663   
+     37750   293.81475      1495.5521      0.99973842    -441.08762     -1.7229985      2.4657337     -1.1696484      0.58482422   
+     38000   305.37902      323.07452      0.99973842    -443.45378     -1.7322413      2.4746129     -1.1744734      0.58723672   
+     38250   300.20629      2114.7725      0.99973842    -442.16328     -1.7272003      2.4795961     -1.1755644      0.58778219   
+     38500   297.22476      900.32996      0.99973842    -443.61415     -1.7328678      2.4844492     -1.178082       0.58904101   
+     38750   297.15952      1627.8351      0.99973842    -442.28413     -1.7276724      2.4737397     -1.1742878      0.58714391   
+     39000   303.82554      102.24075      0.99973842    -443.22667     -1.7313542      2.4707345     -1.1737178      0.58685893   
+     39250   299.01861      1192.101       0.99973842    -441.51289     -1.7246597      2.4654616     -1.1704783      0.58523917   
+     39500   304.03443      1507.2001      0.99973842    -439.75258     -1.7177835      2.4564112     -1.1654902      0.58274512   
+     39750   297.45588     -332.96201      0.99973842    -440.7611      -1.721723       2.4540439     -1.1642752      0.58213762   
+     40000   305.36214      855.4372       0.99973842    -439.47088     -1.7166831      2.4476064     -1.161797       0.5808985    
+Loop time of 183.289 on 12 procs for 40000 steps with 1024 atoms
+
+Performance: 4.714 ns/day, 5.091 hours/ns, 218.235 timesteps/s, 223.472 katom-step/s
+87.9% CPU use with 12 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 39.707     | 41.123     | 42.866     |  13.7 | 22.44
+Bond    | 0.002151   | 0.0024549  | 0.0027901  |   0.4 |  0.00
+Kspace  | 26.911     | 28.981     | 30.462     |  18.0 | 15.81
+Neigh   | 0.8528     | 0.89107    | 0.92987    |   2.3 |  0.49
+Comm    | 10.303     | 10.384     | 10.471     |   1.7 |  5.67
+Output  | 0.017615   | 0.025168   | 0.034359   |   2.9 |  0.01
+Modify  | 100.63     | 100.84     | 100.98     |   1.3 | 55.01
+Other   |            | 1.046      |            |       |  0.57
+
+Nlocal:        85.3333 ave          98 max          75 min
+Histogram: 1 1 1 4 1 1 1 0 1 1
+Nghost:        4630.83 ave        4687 max        4547 min
+Histogram: 2 1 0 1 0 0 1 2 2 3
+Neighs:        41245.8 ave       47153 max       36423 min
+Histogram: 1 1 1 4 2 0 1 0 1 1
+FullNghs:      82491.5 ave       94533 max       72368 min
+Histogram: 1 1 0 4 2 1 1 0 1 1
+
+Total # of neighbors = 989898
+Ave neighs/atom = 966.69727
+Ave special neighs/atom = 1.5
+Neighbor list builds = 398
+Dangerous builds = 0
+
+print           "LIQUID_TAIL mu=$(f_propavg[1]:%.4f) qM=$(f_propavg[2]:%.4f) qH=$(f_propavg[3]:%.4f) T=$(f_propavg[4]:%.2f) P=$(f_propavg[5]:%.2f) PEmol=$(f_propavg[6]:%.5f)"
+LIQUID_TAIL mu=2.4672 qM=-1.1707 qH=0.5853 T=298.31 P=963.68 PEmol=-1.72559
+write_restart   rst_${seed}_base.restart
+write_restart   rst_9013_base.restart
+System init for write_restart ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.31605582
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00010950114
+  estimated relative force accuracy = 7.6044335e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 4046 700
+samqeq: pair coul/shield/intra Slater-overlap J(r) tables built (6 unique type pairs, 2000 pts each, r in [0.02,5])
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:198)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:200)
+WARNING: Angles are defined but no angle style is set (src/force.cpp:203)
+WARNING: Likewise 1-3 special neighbor interactions != 1.0 (src/force.cpp:205)
+samqeq: Slater-overlap J(r) tables built (6 unique type pairs, 2000 pts each, r in [0.02,10])
+samqeq: long-range EWALD (reciprocal-in-matvec) on (alpha=g_ewald=0.3161, swb=10.00); pair MUST be lj/cut/coul/long + kspace pppm/samqeq
+Total wall time: 0:03:05

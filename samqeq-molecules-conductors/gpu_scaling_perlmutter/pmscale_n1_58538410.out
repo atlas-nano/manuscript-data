@@ -1,0 +1,4 @@
+GUARD nodes=1 gpus=4 missing_libs=0
+RESULT rep6_n1 nodes=1 gpus=4 natoms=331776 | Performance: 0.295 ns/day, 81.407 hours/ns, 3.412 timesteps/s, 1.132 Matom-step/s
+RESULT rep8_n1 nodes=1 gpus=4 natoms=786432 | Performance: 0.127 ns/day, 188.652 hours/ns, 1.472 timesteps/s, 1.158 Matom-step/s
+ARMS_OK 2/2

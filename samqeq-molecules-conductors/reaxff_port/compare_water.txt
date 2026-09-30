@@ -1,0 +1,2 @@
+water_sam_opmatch/charges.dump: N=3000  max|dq|=1.194e-09 e  rms=1.680e-10 e  max rel=1.643e-09  sum q ref=-1.73e-14 sam=5.30e-12  ref q range [-0.8109, 0.4238]
+water_sam_phys/charges.dump: N=3000  max|dq|=6.660e-05 e  rms=3.891e-05 e  max rel=8.310e-05  sum q ref=-1.73e-14 sam=2.03e-12  ref q range [-0.8109, 0.4238]

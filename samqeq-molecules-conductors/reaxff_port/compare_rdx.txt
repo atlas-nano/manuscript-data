@@ -1,0 +1,2 @@
+rdx_sam_opmatch/charges.dump: N=21  max|dq|=5.460e-10 e  rms=2.405e-10 e  max rel=1.486e-08  sum q ref=1.19e-15 sam=-1.91e-15  ref q range [-0.3112, 0.5265]
+rdx_sam_phys/charges.dump: N=21  max|dq|=9.249e-05 e  rms=4.718e-05 e  max rel=8.321e-04  sum q ref=1.19e-15 sam=-2.43e-15  ref q range [-0.3112, 0.5265]
