@@ -1,8 +1,0 @@
-eta0.3000_gselfoff Lanczos lambda_min=-3.173
-eta0.3000_gselfon Lanczos lambda_min=13.07
-eta1.0000_gselfoff Lanczos lambda_min=-2.473
-eta1.0000_gselfon Lanczos lambda_min=13.77
-eta2.5000_gselfoff Lanczos lambda_min=-0.9733
-eta2.5000_gselfon Lanczos lambda_min=15.27
-eta5.1720_gselfoff Lanczos lambda_min=1.699
-eta5.1720_gselfon Lanczos lambda_min=17.95

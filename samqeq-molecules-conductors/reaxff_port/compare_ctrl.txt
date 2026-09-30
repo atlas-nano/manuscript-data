@@ -1,1 +1,0 @@
-water_ctrl_noeta2/charges.dump: N=3000  max|dq|=3.120e+00 e  rms=1.122e+00 e  max rel=8.759e+00  sum q ref=-1.73e-14 sam=4.65e-12  ref q range [-0.8109, 0.4238]

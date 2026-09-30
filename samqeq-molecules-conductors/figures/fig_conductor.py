@@ -1,11 +1,4 @@
-"""Central result: molecules and a conductor in one solve (conductor_demo/, revised for the referee, 2026-09-27).
-
-(a) smallest eigenvalue of the constrained operator (dense) vs the gold hardness, four arms; (b) water->metal charge
-and the largest single-molecule charge vs an offset of the water electronegativities (eta = 5.172 eV); (c) charge
-above the slab mid-plane (Gaussian densities) opposite a unit point charge at height z; (d) the self-energy width:
-face charge relative to the Gauss limit in a field, and the sub-surface layer relative to the face.
-Data: ../conductor_demo/{dense_exp1,offset,exp2b,wscan}.csv. Previous version: fig_conductor_v1.py.bak_20260927.
-"""
+"""Figure 3: molecules and a conductor in one solve. Reads ../data/dense_exp1.csv, offset.csv, exp2b.csv and wscan.csv."""
 import csv
 from pathlib import Path
 
@@ -13,32 +6,28 @@ import matplotlib.pyplot as plt
 import figstyle as fs
 
 HERE = Path(__file__).resolve().parent
-DEMO = HERE.parent / "conductor_demo"
+DEMO = HERE.parent / "data"
 fs.apply()
 
-ARMS = [  # key, label, colour, marker, dash
+ARMS = [
     ("qeq",       "global, no self-energy",       fs.VERM,   "s", (0, (4, 2))),
     ("qeq_gself", "global, self-energy",          fs.PURPLE, "D", (0, (1, 1.5))),
     ("mol",       "per molecule, no self-energy", fs.GREEN,  "^", (0, (6, 2, 1, 2))),
     ("samqeq",    "per molecule, self-energy",    fs.BLUE,   "o", "solid"),
 ]
 
-
 def load(name):
     with open(DEMO / name) as f:
         return list(csv.DictReader(f))
-
 
 def eta_ticks(ax):
     t = [5, 2, 1, 0.3, 0.1, 0.05]
     ax.set_xscale("log"); ax.invert_xaxis()
     ax.set_xticks(t); ax.set_xticklabels([f"{v:g}" for v in t]); ax.minorticks_off()
 
-
 dense, off, e2, ws = load("dense_exp1.csv"), load("offset.csv"), load("exp2b.csv"), load("wscan.csv")
 fig, axs = plt.subplots(2, 2, figsize=(fs.TEXTWIDTH, 4.3), constrained_layout=True)
 
-# (a) dense lambda_min vs eta
 ax = axs[0, 0]
 ax.axhspan(-4.5, 0, color=fs.GRID, alpha=0.45, lw=0)
 ax.text(4.6, -3.0, "indefinite", fontsize=6.5, color=fs.MUTED, ha="left")
@@ -50,7 +39,6 @@ ax.set_xlabel(r"gold hardness $\eta_{\rm Au}$ (eV)"); ax.set_ylabel(r"$\lambda_{
 ax.set_ylim(-4.2, 2.4); ax.axhline(0, color=fs.MUTED, lw=0.6)
 fs.panel_label(ax, "a", dx=-0.19)
 
-# (b) offset scan at eta = 5.172
 ax = axs[0, 1]
 ax.axhline(0, color=fs.MUTED, lw=0.6)
 for key, lab, c, m, ls in ARMS:
@@ -65,7 +53,6 @@ ax.text(-0.25, 3.95, r"filled: $Q_{\rm water}$ (water $\to$ metal)" "\n" r"open:
         fontsize=6.0, color=fs.MUTED, va="top")
 fs.panel_label(ax, "b", dx=-0.17)
 
-# (c) density-based screening vs height
 ax = axs[1, 0]
 ax.axhline(-1, color=fs.MUTED, lw=0.6, ls=(0, (2, 2)))
 ax.text(2.2, -0.97, "ideal conductor", fontsize=6.3, color=fs.MUTED, ha="left", va="bottom")
@@ -81,7 +68,6 @@ ax.set_ylim(-2.1, -0.85)
 ax.legend(loc="center right", bbox_to_anchor=(1.0, 0.47), fontsize=5.4, handlelength=2.4, labelspacing=0.25)
 fs.panel_label(ax, "c", dx=-0.24)
 
-# (d) width scan
 ax = axs[1, 1]
 ax.axhline(0, color=fs.MUTED, lw=0.6)
 ax.axhline(1, color=fs.MUTED, lw=0.6, ls=(0, (2, 2)))
