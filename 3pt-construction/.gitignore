@@ -1,7 +1,3 @@
-# regenerated figure/table outputs (produced by the scripts in figures/)
-figures/*.png
-figures/*.pdf
-figures/table_s1.tex
-figures/table_s1.md
+figures/out/
 __pycache__/
 *.pyc

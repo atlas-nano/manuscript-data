@@ -1,72 +1,33 @@
-# 3PT — data and analysis scripts
+# An anharmonic liquid-entropy functional from the Mori–Zwanzig memory kernel — figure data
 
-Data, post-processing scripts, and run templates for:
-
-**"An anharmonic liquid-entropy functional from the Mori–Zwanzig memory kernel"**
-(Three-Phase Explicit Anharmonic Thermodynamics, 3PT).
-
-**Archived on Zenodo:** https://doi.org/10.5281/zenodo.21447740
-
-The 2PT/3PT entropy code itself (py-xPT) lives in a separate repository:
-<https://github.com/atlas-nano/codes/tree/main/py-xPT>. The `.ini` control files in
-`pyxpt_control/` are run with that code.
-
-## Layout
-
-```
-3pt-construction/
-  figures/          analysis + figure-generation scripts (self-contained: numpy/scipy/matplotlib)
-  data/             post-processed inputs the scripts read
-    lj_fullgrid_cage.csv      71-point LJ (ρ*,T*) grid, all entropy functionals (= 8 fs)
-    lj_grid_8fs.csv,_64fs.csv timestep-resolved LJ grids (cage-efficiency figure)
-    fig_d_data.npz            d=2 / metals p* calibration
-    cage_sens/{8fs,64fs,metals,water}/cin_*.npz   per-state kernel+DoS arrays
-    lj_4d/*_result.npz        4D-LJ isotherm/isobar analysis results
-    pwr/*.pwr                 gas|cage|solid DoS decompositions (py-xPT output)
-  pyxpt_control/    py-xPT .ini control files (LJ grid, metals, water; lj_4d/ engine .ini)
-  lammps/           LAMMPS data files, EAM potentials, input templates; 4D MD engine source
-  reproduce.py      regenerate every figure/table
-```
-
-## Quickstart
+Data and scripts that reproduce the figures of R. Buarque, M. Gascon and T. A. Pascal, *An anharmonic liquid-entropy
+functional from the Mori–Zwanzig memory kernel*, The Journal of Chemical Physics (submitted). The entropies were
+computed with py-xPT, https://github.com/atlas-nano/codes/tree/main/py-xPT.
 
 ```bash
-pip install numpy scipy matplotlib
-python reproduce.py            # regenerate all figures + Table S1 into figures/
-# or individually, e.g.:
-python figures/make_fig_lj_cage.py
+python3 reproduce.py    # writes every figure to figures/out/
 ```
 
-## Figure / Table → script + data
+or one figure at a time from `figures/`:
 
-| Manuscript item | Script | Input data |
-|---|---|---|
-| Fig. 1 (signed bias), Fig. 2 (per-state ΔS*) | `figures/make_fig_lj_cage.py` | `data/lj_fullgrid_cage.csv` |
-| Fig. 3 (liquid-metal accuracy) | `figures/make_fig_metals_accuracy.py` | in-script (Sun 2017 TI + this work) |
-| Fig. 4 (gas\|cage\|solid DoS) | `figures/make_fig_cage_dos.py` | `data/pwr/*.pwr` |
-| Fig. 5 (cage-efficiency universal law) | `figures/plot_universal_with_water.py` | `data/cage_sens/*`, `data/lj_grid_{8fs,64fs}.csv` |
-| Fig. 6 (p=1/d cross-dimensional) | `figures/make_fig_d.py` | `data/fig_d_data.npz`, `data/lj_fullgrid_cage.csv` |
-| Fig. 7 (state-function / path independence) | `figures/make_fig_pathindep.py` | `data/lj_fullgrid_cage.csv` (+ `mbwr_lj.py`) |
-| Table I, Table S1 (full LJ grid) | `figures/gen_table_s1.py` | `data/lj_fullgrid_cage.csv` |
-| SI Fig. (d=4 prefactor test) | `figures/fig_d4_prefactor.py` | `data/lj_4d/*_result.npz` |
-| SI Fig. (cage f0/nu_c sensitivity) | `figures/sweep_gate_filter.py` | `data/cage_sens/8fs/cin_*.npz` |
+```bash
+cd figures
+python3 fig_lj_bias.py              # Figures 1 and 2, from data/lj_grid.csv
+python3 fig_metals_accuracy.py      # Figure 3, from data/metals.csv
+python3 fig_cage_dos_partition.py   # Figure 4, from data/cage_dos_partition.npz
+python3 fig_cage_efficiency.py      # Figure 5, from data/cage_efficiency.json
+python3 fig_path_independence.py    # Figure 6, from data/lj_grid.csv (with mbwr_lj.py)
+python3 fig_SI_cage_sensitivity.py  # Figure S1, from data/cage_sensitivity.csv
+```
 
-Helper modules: `figures/kernel_tools.py` (standalone Volterra-kernel inversion +
-cage-entropy routines, vendored from py-xPT so the figures need no external code),
-`figures/cage_decompose_compare.py`, `figures/strengthen_nonmarkovian.py`,
-`figures/mbwr_lj.py` (Johnson–Zollweg–Gubbins LJ EOS).
+Requires Python 3 with numpy (2.0 or later) and matplotlib.
 
-## Notes
+| file | contents |
+|---|---|
+| `data/lj_grid.csv` | 43 Lennard-Jones liquid states (0.70 ≤ ρ* ≤ 1.02): reduced density and temperature, MBWR entropy, 3PT entropy, and the signed deviation of the rigorous-HS, Lin-2003, Desjarlais, R2PT and 3PT entropies from MBWR, in k_B per atom |
+| `data/metals.csv` | seven Sutton–Chen liquid metals: temperature, thermodynamic-integration entropy (Sun *et al.*, 2017), and the rigorous-HS, Lin-2003, Desjarlais, R2PT (Sun *et al.*, 2017) and 3PT entropies, in k_B per atom |
+| `data/cage_dos_partition.npz` | for each panel of Figure 4: frequency (cm⁻¹), total, gas, cage and solid densities of states (DoF per particle per cm⁻¹), and the gas, cage and solid integrals over the full spectrum |
+| `data/cage_efficiency.json` | cage efficiency and γ/Ω₀ for the Lennard-Jones liquids, the metals, the time-step ladders and water, with the fitted rate constant, its R², the mean entropy deficit and the resolution threshold Δt·Ω₀ |
+| `data/cage_sensitivity.csv` | for 40 Lennard-Jones states: density, temperature, fluidicity, the cage entropy at the default settings, and the cage entropy (k_B per atom) at each fluidicity-gate value f₀ and each filter-cutoff scale |
 
-- **Trajectories are not included.** The raw MD trajectories (~200 GB) are excluded
-  for size; the shipped `data/` are the post-processed inputs (per-state kernel/DoS
-  arrays, DoS decompositions, and the tabulated entropies) sufficient to regenerate
-  every figure. Trajectories are available from the authors on request.
-- The **d=4 decisive-point** marker (ρ*=1.10, T*=1.0) in the SI prefactor figure
-  requires the 4D production trajectory and is omitted here; the figure regenerates
-  from the isotherm/isobar result files.
-- **LAMMPS files are templates** (one representative input per system class, plus the
-  data files / EAM potentials and the custom 4D MD engine source under `lammps/lj_4d/`).
-- Water standard molar entropies (manuscript Tables III–IV) are assembled from the
-  FEP/Frenkel–Ladd routes described in the manuscript SI; the cage contributions come
-  from the `data/pwr/` decompositions.
+License: CC BY 4.0.
