@@ -1,8 +1,8 @@
-# samQEq: unified charge equilibration from molecules to conductors — figure data
+# samQEq: universal charge equilibration for molecules and conductors — figure data
 
-Data and scripts that reproduce the figures of N. Solan, D. Sun and T. A. Pascal, *samQEq: unified charge
-equilibration from molecules to conductors*, Computer Physics Communications (submitted). The code is samQEq 1.0.0,
-https://github.com/atlas-nano/codes/tree/main/samqeq, archived at https://doi.org/10.5281/zenodo.23043176.
+Data and scripts that reproduce the figures of N. Solan, D. Sun and T. A. Pascal, *samQEq: universal charge
+equilibration for molecules and conductors*, Computer Physics Communications (submitted). The code is samQEq 1.0.1,
+https://github.com/atlas-nano/codes/tree/main/samqeq, archived at https://doi.org/10.5281/zenodo.23051745.
 
 ```bash
 cd figures
