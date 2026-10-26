@@ -1,0 +1,13 @@
+electrolyte,current_density_mA_cm2,average_overpotential_mV
+WCA-WCS,1,26.6
+WCA-WCS,2,44
+WCA-WCS,4,73.2
+WCA-WCS,8,164
+IL-LGE,1,36.5
+IL-LGE,2,53.9
+IL-LGE,4,95
+IL-LGE,8,180.7
+LHCE,1,80.5
+LHCE,2,174.9
+LHCE,4,284.3
+LHCE,8,403.9

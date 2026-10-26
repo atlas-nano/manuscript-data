@@ -1,0 +1,140 @@
+{
+ "temperature_K": 293.15,
+ "dg_diss_kcal_per_mol": {
+  "litpfa": 146.41,
+  "lipf6": 163.54,
+  "libf4": 173.06
+ },
+ "solvent_molar_mass_g_per_mol": {
+  "FM": 34.033,
+  "ACN": 41.053,
+  "Me2O": 46.069,
+  "DME": 90.121,
+  "DEE": 74.123
+ },
+ "solvent_density_g_per_cm3": {
+  "FM": 0.5996,
+  "ACN": 0.786,
+  "Me2O": 0.67,
+  "DME": 0.868,
+  "DEE": 0.713
+ },
+ "solvent_key": {
+  "fm": "FM",
+  "acn": "ACN",
+  "me2o": "Me2O",
+  "dme": "DME",
+  "dee": "DEE"
+ },
+ "c_salt_mol_per_L": 0.25,
+ "anion_molar_mass_amu": {
+  "tpfa": 967.0976152,
+  "pf6": 144.96418119999998,
+  "bf4": 86.8046128
+ },
+ "anion_of_salt": {
+  "litpfa": "tpfa",
+  "lipf6": "pf6",
+  "libf4": "bf4"
+ },
+ "li_molar_mass_amu": 6.94,
+ "contact_threshold_kcal_per_mol": -10.0,
+ "li_shell_radii": [
+  "r226",
+  "r260",
+  "r300"
+ ],
+ "anion_shell_radii": [
+  "a260",
+  "a300",
+  "a350"
+ ],
+ "headline_pair": [
+  "r300",
+  "a300"
+ ],
+ "min_windows": 30,
+ "composition_tolerance": 0.02,
+ "volume_tolerance": 0.001,
+ "min_windows_vacuum": 10,
+ "rigid_rotor_S_rot_J_per_mol_K": {
+  "tpfa": 163.1,
+  "pf6": 114.4,
+  "bf4": 105.8
+ },
+ "rigid_rotor_tolerance": 0.4,
+ "solvent_order": [
+  "fm",
+  "me2o",
+  "dme",
+  "dee",
+  "acn"
+ ],
+ "salt_order": [
+  "litpfa",
+  "lipf6",
+  "libf4"
+ ],
+ "atoms_per_molecule": {
+  "libf4_acn": [
+   6,
+   5
+  ],
+  "libf4_dee": [
+   15,
+   5
+  ],
+  "libf4_dme": [
+   16,
+   5
+  ],
+  "libf4_fm": [
+   5,
+   5
+  ],
+  "litpfa_fm": [
+   5,
+   57
+  ],
+  "litpfa_me2o": [
+   9,
+   57
+  ],
+  "litpfa_dee": [
+   15,
+   57
+  ],
+  "litpfa_acn": [
+   6,
+   57
+  ],
+  "lipf6_acn": [
+   6,
+   7
+  ],
+  "litpfa_dme": [
+   16,
+   57
+  ],
+  "lipf6_fm": [
+   5,
+   7
+  ],
+  "lipf6_dee": [
+   15,
+   7
+  ],
+  "lipf6_dme": [
+   16,
+   7
+  ],
+  "lipf6_me2o": [
+   9,
+   7
+  ],
+  "libf4_me2o": [
+   9,
+   5
+  ]
+ }
+}

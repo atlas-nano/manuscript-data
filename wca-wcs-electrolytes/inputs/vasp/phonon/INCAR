@@ -1,0 +1,11 @@
+PREC   = Accurate
+ENCUT  = 520
+IVDW   = 11
+EDIFF  = 1E-8
+ISMEAR = 0
+SIGMA  = 0.05
+NSW    = 0
+IBRION = -1
+LREAL  = .FALSE.
+LWAVE  = .FALSE.
+LCHARG = .FALSE.

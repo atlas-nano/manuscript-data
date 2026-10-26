@@ -1,0 +1,29 @@
+$molecule
+-1 1
+  B      0.0000000000    -0.0000000000    -0.0000000000
+  F      0.8142342195     0.8142342196     0.8142342192
+  F      0.8142342195    -0.8142342196    -0.8142342192
+  F     -0.8142342195     0.8142342196    -0.8142342192
+  F     -0.8142342195    -0.8142342196     0.8142342192
+$end
+
+$rem
+JOBTYPE           sp
+METHOD            wB97M-rV
+BASIS             def2-TZVPD
+NL_GRID           000050000194
+XC_GRID           000099000590
+SCF_CONVERGENCE   9
+THRESH            15
+SYM_IGNORE        TRUE
+MEM_STATIC        4000
+MEM_TOTAL         60000
+MAX_SCF_CYCLES    150
+MULTIPOLE_ORDER  4
+ESP_GRID          636
+SCF_GUESS         READ
+$end
+
+$multipole_field
+X -0.001000
+$end

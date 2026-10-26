@@ -1,0 +1,107 @@
+units           metal
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+pair_style      hybrid/overlay coul/long 12.0 coul/shield/intra 12.0 all gaussian morse 12.0 buck 12.0
+read_data       litpfa_fm.data
+special_bonds   lj 0.0 0.0 0.5 coul 1.0e-8 1.0e-8 1.0
+include         ../../../../forcefield/merged/paircoeff_litpfa_fm.inc
+pair_coeff      * * coul/long
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+group           qall type 1 2 3 4 5 6 7 8 9 10 11
+group           ions type 6:11
+fix             q qall qeq/sam 1 0.0 12.0 1.0e-5 ../../../../forcefield/merged/litpfa_fm.param
+fix_modify      q shield gaussian
+fix_modify      q aspc 2
+fix_modify      q recip_probes 16
+fix_modify      q energy yes
+fix_modify      q eselfref qs
+fix             pf all property/atom i_pin
+variable        pinv atom mol
+set             atom * i_pin v_pinv
+group           anionall type 6:10
+set             group anionall mol 642
+fix_modify      q pinfrag pin
+compute         cq all property/atom q
+compute         qmx all reduce max c_cq
+compute         qmn all reduce min c_cq
+thermo_style    custom step temp press density c_qmx c_qmn f_q
+thermo          2000
+minimize        1.0e-4 1.0e-6 1000 10000
+reset_timestep  0
+velocity        all create 1.0 13456 mom yes rot yes dist gaussian
+timestep        0.0002
+fix             intg all nve/limit 0.005
+fix             lgv all langevin 1.0 1.0 0.02 13456
+run             20000
+unfix           lgv
+unfix           intg
+timestep        0.0005
+fix             intg all nve
+fix             lgv all langevin 1.0 300.0 0.1 13456
+run             40000
+unfix           lgv
+fix             lgv all langevin 300.0 600.0 0.1 13456
+run             40000
+unfix           lgv
+fix             lgv all langevin 600.0 300.0 0.1 13456
+run             40000
+unfix           lgv
+unfix           intg
+fix             intg all npt temp 300.0 293.0 0.1 iso 90 90 1.0
+run             100000
+variable        vavg equal vol
+fix             vavgf all ave/time 100 400 40000 v_vavg
+run             40000
+print           "NPT_DONE litpfa_fm vavg $(f_vavgf) A3"
+unfix           intg
+variable        lscale equal (f_vavgf/vol)^(1.0/3.0)
+fix             defm all deform 1 x scale ${lscale} y scale ${lscale} z scale ${lscale} &
+                    remap x
+fix             intg all nvt temp 293.0 293.0 0.1
+run             10000
+unfix           defm
+unfix           intg
+unfix           vavgf
+write_restart   litpfa_fm_k1_preanalysis.restart
+reset_timestep  0
+timestep        0.0005
+fix             intg all nvt temp 293.0 293.0 0.1
+group           solv  type 1:5
+group           licat type 11
+group           anion type 6:10
+compute         rdfls all rdf 400 11 1 11 9
+fix             rdfout all ave/time 10 5000 50000 c_rdfls[*] file rdf_litpfa_fm_k1.txt mode vector
+compute         ggls licat group/group solv  kspace yes
+compute         ggas anion group/group solv  kspace yes
+compute         ggla licat group/group anion kspace yes
+fix             ggout all ave/time 20 250 5000 c_ggls c_ggas c_ggla file gg_litpfa_fm_k1.dat
+group           shr226 dynamic licat within 2.26 include molecule exclude ions every 4096
+variable        nr226 equal count(shr226)
+group           shr260 dynamic licat within 2.60 include molecule exclude ions every 4096
+variable        nr260 equal count(shr260)
+group           shr300 dynamic licat within 3.00 include molecule exclude ions every 4096
+variable        nr300 equal count(shr300)
+group           sha260 dynamic anion within 2.60 include molecule exclude ions every 4096
+variable        na260 equal count(sha260)
+group           sha300 dynamic anion within 3.00 include molecule exclude ions every 4096
+variable        na300 equal count(sha300)
+group           sha350 dynamic anion within 3.50 include molecule exclude ions every 4096
+variable        na350 equal count(sha350)
+fix  xr226 shr226 xpt 4 1024 xpt4_litpfa_fm_k1_r226 classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+fix  xr260 shr260 xpt 4 1024 xpt4_litpfa_fm_k1_r260 classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+fix  xr300 shr300 xpt 4 1024 xpt4_litpfa_fm_k1_r300 classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+fix  xa260 sha260 xpt 4 1024 xpt4_litpfa_fm_k1_a260 classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+fix  xa300 sha300 xpt 4 1024 xpt4_litpfa_fm_k1_a300 classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+fix  xa350 sha350 xpt 4 1024 xpt4_litpfa_fm_k1_a350 classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+fix  xblk solv  xpt 4 1024 xpt4_litpfa_fm_k1_bulk classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+fix  xion licat xpt 4 1024 xpt4_litpfa_fm_k1_ion classical allow_mixed_molecules normalize mode 3PT refinement memarea show_split
+fix  xani anion xpt 4 1024 xpt4_litpfa_fm_k1_anion classical normalize molecule symmetry C1 mode 3PT refinement memarea show_split
+thermo          2000
+run             300000
+print "XPT_DONE litpfa_fm_k1 nr226=$(v_nr226) nr260=$(v_nr260) nr300=$(v_nr300) na260=$(v_na260) na300=$(v_na300) na350=$(v_na350) rho=$(density) qmax=$(c_qmx) qmin=$(c_qmn)"
+write_data      litpfa_fm_k1_final.data nocoeff

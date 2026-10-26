@@ -1,0 +1,15 @@
+Salt,Solvent,Contact region,Barrier,ΔGassoc,ΔΔGassoc
+LiTPFA,FM,local minimum +12.2 ± 0.7 at 3.15 Å,+14.3 ± 0.3 at 4.25 Å,+15.0 ± 0.7,
+LiPF6,FM,minimum −28.1 ± 0.3 at 2.75 Å,none,−24.1 ± 0.4,+39.1 ± 0.7
+LiBF4,FM,minimum −47.9 ± 0.6 at 1.95 Å,none,−43.4 ± 0.6,
+LiTPFA,ACN,none sampled; W ≥ +39 over 2.85–3.45 Å,none,+38.5 ± 0.7,
+LiPF6,ACN,local minimum +2.3 ± 0.4 at 3.05 Å,+7.4 ± 0.3 at 4.55 Å,+5.6 ± 0.5,+32.9 ± 0.8
+LiBF4,ACN,minimum −7.8 ± 0.5 at 2.15 Å,+7.0 ± 0.5 at 4.45 Å,−3.5 ± 0.6,
+LiTPFA,Me2O,minimum −5.1 ± 0.2 at 2.95 Å,+2.3 ± 0.1 at 5.65 Å,−1.9 ± 0.5,
+LiPF6,Me2O,minimum −38.0 ± 0.5 at 2.65 Å,none,−33.9 ± 0.8,+32.0 ± 0.7
+LiBF4,Me2O,minimum −59.4 ± 0.4 at 1.85 Å,none,−54.6 ± 0.4,
+LiTPFA,DME,local minimum +5.8 ± 1.1 at 3.15 Å,+9.8 ± 0.6 at 4.25 Å,+9.1 ± 1.9,
+LiPF6,DME,minimum −29.4 ± 0.4 at 2.75 Å,−1.2 ± 0.3 at 5.75 Å,−25.4 ± 0.5,+34.5 ± 2.0
+LiBF4,DME,minimum −49.8 ± 0.4 at 1.95 Å,−1.5 ± 0.5 at 5.15 Å,−45.3 ± 0.4,
+LiTPFA,DEE,minimum −2.2 ± 1.2 at 3.05 Å,+1.9 ± 0.8 at 4.25 Å,+0.9 ± 1.3,
+LiPF6,DEE,minimum −38.9 ± 0.3 at 2.75 Å,none,−34.9 ± 0.8,+35.8 ± 1.4

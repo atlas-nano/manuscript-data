@@ -1,0 +1,6 @@
+panel,element,transition,integration_low_BE_eV,integration_high_BE_eV,scofield_RSF,corrected_intensity,atomic_percent
+A,C,C 1s,279.0,296.0,1.0,1445.74,30.81
+A,O,O 1s,525.0,539.0,2.93,1317.68,28.08
+A,F,F 1s,678.0,694.0,4.43,321.028,6.84
+A,Al,Al 2s,112.0,125.0,0.753,178.611,3.81
+A,Li,Li 1s,50.0,61.0,0.0568,1429.49,30.46

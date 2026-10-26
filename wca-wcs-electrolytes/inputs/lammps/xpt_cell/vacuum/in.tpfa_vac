@@ -1,0 +1,116 @@
+units           metal
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  opls
+pair_style      hybrid/overlay coul/long 12.0 coul/shield/intra 12.0 all gaussian morse 12.0
+read_data       tpfa_vac.data
+special_bonds   lj 0.0 0.0 0.5 coul 1.0e-8 1.0e-8 1.0
+include         paircoeff_tpfa_vac.inc
+pair_coeff      * * coul/long
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+group           solute type 7:11
+fix             q solute qeq/sam 1 0.0 12.0 1.0e-5 ../../../../forcefield/merged/litpfa_acn.param
+fix_modify      q shield gaussian
+fix_modify      q aspc 2
+fix_modify      q recip_probes 16
+fix             pf all property/atom i_pin
+variable        pinv atom mol
+set             atom * i_pin v_pinv
+set             group solute mol 1
+fix_modify      q pinfrag pin
+variable        rtemp equal 293.0
+variable        kb    equal 8.617343e-05
+variable        mvv2e equal 0.00010364269
+variable        V0    equal vol
+timestep        0.0005
+compute         tsolu solute temp
+compute_modify  tsolu extra/dof 0
+compute         tvib  solute temp
+compute_modify  tvib  extra/dof 6
+compute         tcom  solute temp/com
+compute         atomMass all property/atom mass
+variable        xcm equal xcm(solute,x)
+variable        ycm equal xcm(solute,y)
+variable        zcm equal xcm(solute,z)
+compute         xuc all property/atom xu yu zu
+variable        dx atom c_xuc[1]-v_xcm
+variable        dy atom c_xuc[2]-v_ycm
+variable        dz atom c_xuc[3]-v_zcm
+variable        Ixx_a atom c_atomMass*(v_dy*v_dy+v_dz*v_dz)
+variable        Iyy_a atom c_atomMass*(v_dx*v_dx+v_dz*v_dz)
+variable        Izz_a atom c_atomMass*(v_dx*v_dx+v_dy*v_dy)
+variable        Ixy_a atom -c_atomMass*(v_dx*v_dy)
+variable        Ixz_a atom -c_atomMass*(v_dx*v_dz)
+variable        Iyz_a atom -c_atomMass*(v_dy*v_dz)
+compute         cIxx solute reduce sum v_Ixx_a
+compute         cIyy solute reduce sum v_Iyy_a
+compute         cIzz solute reduce sum v_Izz_a
+compute         cIxy solute reduce sum v_Ixy_a
+compute         cIxz solute reduce sum v_Ixz_a
+compute         cIyz solute reduce sum v_Iyz_a
+variable        Ixx equal c_cIxx
+variable        Iyy equal c_cIyy
+variable        Izz equal c_cIzz
+variable        Ixy equal c_cIxy
+variable        Ixz equal c_cIxz
+variable        Iyz equal c_cIyz
+variable        M   equal mass(solute)
+variable        vcomx equal sqrt(3.0*v_kb*v_rtemp/(v_M*v_mvv2e))
+include         rotaxes.inc
+variable        skT equal sqrt(v_kb*v_rtemp/v_mvv2e)
+variable        C11 equal sqrt(v_Ixx)
+variable        C21 equal v_Ixy/v_C11
+variable        C31 equal v_Ixz/v_C11
+variable        C22 equal sqrt(v_Iyy-v_C21*v_C21)
+variable        C32 equal (v_Iyz-v_C31*v_C21)/v_C22
+variable        C33 equal sqrt(v_Izz-v_C31*v_C31-v_C32*v_C32)
+variable        Lx equal v_skT*(v_C11*v_zx)
+variable        Ly equal v_skT*(v_C21*v_zx+v_C22*v_zy)
+variable        Lz equal v_skT*(v_C31*v_zx+v_C32*v_zy+v_C33*v_zz)
+variable        det equal v_Ixx*(v_Iyy*v_Izz-v_Iyz*v_Iyz)-v_Ixy*(v_Ixy*v_Izz-v_Iyz*v_Ixz)+v_Ixz*(v_Ixy*v_Iyz-v_Iyy*v_Ixz)
+variable        ixx equal (v_Iyy*v_Izz-v_Iyz*v_Iyz)/v_det
+variable        ixy equal (v_Ixz*v_Iyz-v_Ixy*v_Izz)/v_det
+variable        ixz equal (v_Ixy*v_Iyz-v_Ixz*v_Iyy)/v_det
+variable        iyy equal (v_Ixx*v_Izz-v_Ixz*v_Ixz)/v_det
+variable        iyz equal (v_Ixz*v_Ixy-v_Ixx*v_Iyz)/v_det
+variable        izz equal (v_Ixx*v_Iyy-v_Ixy*v_Ixy)/v_det
+variable        wx0 equal v_ixx*v_Lx+v_ixy*v_Ly+v_ixz*v_Lz
+variable        wy0 equal v_ixy*v_Lx+v_iyy*v_Ly+v_iyz*v_Lz
+variable        wz0 equal v_ixz*v_Lx+v_iyz*v_Ly+v_izz*v_Lz
+variable        kerot equal 0.5*v_mvv2e*(v_wx0*(v_Ixx*v_wx0+v_Ixy*v_wy0+v_Ixz*v_wz0)+v_wy0*(v_Ixy*v_wx0+v_Iyy*v_wy0+v_Iyz*v_wz0)+v_wz0*(v_Ixz*v_wx0+v_Iyz*v_wy0+v_Izz*v_wz0))
+variable        rsc equal sqrt(1.5*v_kb*v_rtemp/v_kerot)
+variable        wx equal v_rsc*v_wx0
+variable        wy equal v_rsc*v_wy0
+variable        wz equal v_rsc*v_wz0
+variable        vx_rot atom v_wy*v_dz-v_wz*v_dy
+variable        vy_rot atom v_wz*v_dx-v_wx*v_dz
+variable        vz_rot atom v_wx*v_dy-v_wy*v_dx
+variable        seed1 equal floor(10000+104729*v_k)
+minimize        1.0e-6 1.0e-8 2000 20000
+velocity        solute create ${rtemp} 12345 dist gaussian
+variable        k index 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+label           vloop
+  fix           lgv  solute langevin ${rtemp} ${rtemp} 1.0 ${k}5557
+  fix           nveR solute nve
+  run           10000
+  unfix         lgv
+  velocity      solute create ${rtemp} ${seed1} dist gaussian
+  velocity      solute zero linear
+  velocity      solute zero angular
+  velocity      solute scale ${rtemp} temp tvib
+  velocity      solute set ${vcomx} 0.0 0.0 sum yes
+  velocity      solute set v_vx_rot v_vy_rot v_vz_rot sum yes
+  print         "WIN ${k} after-equip: T_full=$(c_tsolu) T_com=$(c_tcom) target ${rtemp}"
+  reset_timestep 0
+  fix           xw solute xpt 4 8192 vacwin_tpfa_vac1_${k} classical normalize molecule symmetry C1 mode 2PT show_split volume v_V0
+  run           32768
+  unfix         xw
+  unfix         nveR
+next            k zx zy zz
+jump            SELF vloop
+print "VACWIN_DONE tpfa_vac1 windows=30"

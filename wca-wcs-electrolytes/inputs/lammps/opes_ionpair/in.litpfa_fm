@@ -1,0 +1,38 @@
+units           metal
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+pair_style      hybrid/overlay coul/long 12.0 coul/shield/intra 12.0 all gaussian morse 12.0 buck 12.0
+read_data       start.data
+special_bonds   lj 0.0 0.0 0.5 coul 1.0e-8 1.0e-8 1.0
+include         ../../../forcefield/merged/paircoeff_litpfa_fm.inc
+pair_coeff      * * coul/long
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+group           qall type 1 2 3 4 5 6 7 8 9 10 11
+group           gan type 6:10
+group           gli type 11
+fix             q qall qeq/sam 1 0.0 12.0 1.0e-5 ../../../forcefield/merged/litpfa_fm.param
+fix_modify      q shield gaussian
+fix_modify      q aspc 2
+fix_modify      q recip_probes 16
+compute         cq all property/atom q
+compute         qmx all reduce max c_cq
+compute         qmn all reduce min c_cq
+variable        rr equal "sqrt((xcm(gan,x)-xcm(gli,x))^2+(xcm(gan,y)-xcm(gli,y))^2+(xcm(gan,z)-xcm(gli,z))^2)"
+thermo_style    custom step temp press v_rr c_qmx c_qmn density
+thermo          2000
+variable        wid  world 1 2 3 4
+variable        vsd  world 20011 27930 35849 43768
+timestep        0.0005
+velocity        all create 293.0 ${vsd} mom yes rot yes dist gaussian
+fix             intg all nvt temp 293.0 293.0 0.1
+run             100000
+reset_timestep  0
+fix             pl all plumed plumedfile plumed.dat outfile plumed.${wid}.out
+run             4000000
+print           "BIAS_DONE OPES g1 w${wid} t=$(step)"
+write_data      final_g1_w${wid}.data nocoeff

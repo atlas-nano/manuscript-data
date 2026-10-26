@@ -1,0 +1,367 @@
+# One TPFA- in vacuum, 40 A cell, metal units; atom types follow litpfa_acn.param (solvent types declared with zero atoms).
+
+57 atoms
+56 bonds
+106 angles
+
+12 atom types
+29 bond types
+69 angle types
+3 dihedral types
+
+0.0 40.0 xlo xhi
+0.0 40.0 ylo yhi
+0.0 40.0 zlo zhi
+
+Masses
+
+  1  12.011
+  2  12.011
+  3  14.007
+  4  1.008
+  5  1.008
+  6  1.008
+  7  12.011
+  8  12.011
+  9  15.9994
+  10  18.9984032
+  11  26.9815
+  12  6.941
+
+Bond Coeffs
+
+  1  16.912001  1.4700
+  2  28.186668  1.1570
+  3  14.743795  1.0900
+  4  14.743795  1.0900
+  5  14.743795  1.0900
+  6  15.0  1.5525  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  7  15.0  1.5576  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  8  15.0  1.3455  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  9  15.0  1.3258  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  10  15.0  1.3411  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  11  15.0  1.3366  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  12  15.0  1.3392  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  13  15.0  1.3354  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  14  15.0  1.3302  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  15  15.0  1.3254  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  16  15.0  1.3424  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  17  15.0  1.3444  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  18  15.0  1.3310  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  19  15.0  1.3358  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  20  15.0  1.5566  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  21  15.0  1.5524  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  22  15.0  1.5539  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  23  15.0  1.3331  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  24  15.0  1.5601  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  25  15.0  1.3456  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  26  15.0  1.3425  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  27  15.0  1.7503  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  28  15.0  1.7469  #  anion  shape  restraint,  r0  from  the  QM  geometry
+  29  15.0  1.7518  #  anion  shape  restraint,  r0  from  the  QM  geometry
+
+Angle Coeffs
+
+  1  6.5046156  180.000
+  2  1.5177436  108.500
+  3  1.5177436  108.500
+  4  1.5177436  108.500
+  5  1.4310154  107.800
+  6  1.4310154  107.800
+  7  1.4310154  107.800
+  8  5.0  109.712  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  9  5.0  109.181  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  10  5.0  107.212  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  11  5.0  109.130  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  12  5.0  109.577  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  13  5.0  111.995  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  14  5.0  110.732  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  15  5.0  112.004  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  16  5.0  110.252  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  17  5.0  107.976  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  18  5.0  107.940  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  19  5.0  107.790  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  20  5.0  112.269  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  21  5.0  110.465  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  22  5.0  110.010  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  23  5.0  108.207  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  24  5.0  111.421  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  25  5.0  110.645  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  26  5.0  108.060  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  27  5.0  108.377  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  28  5.0  107.518  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  29  5.0  109.353  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  30  5.0  110.753  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  31  5.0  109.272  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  32  5.0  110.866  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  33  5.0  107.390  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  34  5.0  112.151  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  35  5.0  109.895  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  36  5.0  110.818  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  37  5.0  108.271  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  38  5.0  110.972  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  39  5.0  111.580  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  40  5.0  110.229  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  41  5.0  107.439  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  42  5.0  111.807  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  43  5.0  107.674  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  44  5.0  111.920  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  45  5.0  108.468  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  46  5.0  108.290  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  47  5.0  110.927  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  48  5.0  111.894  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  49  5.0  111.750  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  50  5.0  107.638  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  51  5.0  112.127  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  52  5.0  110.109  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  53  5.0  111.547  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  54  5.0  109.462  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  55  5.0  110.210  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  56  5.0  111.168  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  57  5.0  111.458  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  58  5.0  107.252  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  59  5.0  110.402  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  60  5.0  141.236  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  61  5.0  140.699  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  62  5.0  142.457  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  63  5.0  139.864  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  64  5.0  114.535  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  65  5.0  107.616  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  66  5.0  106.828  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  67  5.0  106.713  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  68  5.0  106.186  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+  69  5.0  115.214  #  anion  shape  restraint,  theta0  from  the  QM  geometry
+
+Dihedral Coeffs
+
+  1  0  0  0  0
+  2  0  0  0  0
+  3  0  0  0  0
+
+Atoms # full
+
+1 2 7 0.0 20.781729 20.078192 17.175830
+2 2 8 0.0 20.437254 21.132586 16.089614
+3 2 8 0.0 20.338687 18.668620 16.696853
+4 2 8 0.0 22.320595 20.075233 17.416370
+5 3 7 0.0 17.966825 18.018308 20.479733
+6 3 8 0.0 17.150386 18.267001 19.182077
+7 3 8 0.0 17.206037 18.638536 21.689558
+8 3 8 0.0 18.125272 16.490059 20.702962
+9 4 7 0.0 18.916278 22.649260 20.776975
+10 4 8 0.0 19.745783 23.353690 19.664024
+11 4 8 0.0 17.409738 22.957588 20.564041
+12 4 8 0.0 19.367253 23.180223 22.166017
+13 5 7 0.0 22.343483 19.288523 21.562536
+14 5 8 0.0 22.099797 17.748034 21.599998
+15 5 8 0.0 23.850622 19.558237 21.302503
+16 5 8 0.0 21.935812 19.904627 22.928105
+17 2 9 0.0 20.098834 20.412428 18.285888
+18 3 9 0.0 19.201744 18.538943 20.372730
+19 4 9 0.0 19.084580 21.315377 20.760166
+20 5 9 0.0 21.655803 19.873539 20.564781
+21 2 10 0.0 19.137644 21.394573 16.085281
+22 2 10 0.0 20.780141 20.718696 14.860941
+23 2 10 0.0 21.086833 22.275413 16.331660
+24 2 10 0.0 21.164578 18.164385 15.771074
+25 2 10 0.0 19.113016 18.718686 16.169132
+26 2 10 0.0 20.305691 17.827427 17.726826
+27 2 10 0.0 22.680199 21.110837 18.161295
+28 2 10 0.0 22.997816 20.139877 16.259156
+29 2 10 0.0 22.697255 18.956911 18.040438
+30 3 10 0.0 15.838144 18.078866 19.367542
+31 3 10 0.0 17.337560 19.515907 18.761517
+32 3 10 0.0 17.546472 17.444818 18.207295
+33 3 10 0.0 16.677793 19.821206 21.366356
+34 3 10 0.0 16.201721 17.847808 22.099104
+35 3 10 0.0 18.034687 18.817930 22.709100
+36 3 10 0.0 18.484322 16.234817 21.964037
+37 3 10 0.0 19.060758 15.997634 19.902435
+38 3 10 0.0 16.981837 15.830161 20.463453
+39 4 10 0.0 19.158694 23.218369 18.474853
+40 4 10 0.0 19.891041 24.663386 19.902816
+41 4 10 0.0 20.959202 22.811403 19.590982
+42 4 10 0.0 17.203621 24.250068 20.269616
+43 4 10 0.0 16.920597 22.224081 19.573087
+44 4 10 0.0 16.712169 22.677806 21.668022
+45 4 10 0.0 18.918762 24.421430 22.402109
+46 4 10 0.0 20.701808 23.205674 22.237120
+47 4 10 0.0 18.922660 22.391011 23.134525
+48 5 10 0.0 21.984029 17.272077 20.367820
+49 5 10 0.0 20.985239 17.452638 22.271891
+50 5 10 0.0 23.111482 17.105326 22.204820
+51 5 10 0.0 24.305247 18.762350 20.330518
+52 5 10 0.0 24.043013 20.814584 20.924620
+53 5 10 0.0 24.594257 19.335709 22.396517
+54 5 10 0.0 20.611238 20.019695 22.996894
+55 5 10 0.0 22.458645 21.124627 23.069988
+56 5 10 0.0 22.347135 19.159491 23.961549
+57 1 11 0.0 20.008185 20.045318 19.994848
+
+Bonds
+
+1 6 1 2
+2 6 1 3
+3 7 1 4
+4 8 1 17
+5 9 2 21
+6 10 2 22
+7 11 2 23
+8 12 3 24
+9 13 3 25
+10 14 3 26
+11 15 4 27
+12 16 4 28
+13 13 4 29
+14 6 5 6
+15 7 5 7
+16 6 5 8
+17 17 5 18
+18 12 6 30
+19 18 6 31
+20 13 6 32
+21 13 7 33
+22 16 7 34
+23 9 7 35
+24 19 8 36
+25 9 8 37
+26 16 8 38
+27 20 9 10
+28 21 9 11
+29 22 9 12
+30 8 9 19
+31 23 10 39
+32 12 10 40
+33 18 10 41
+34 16 11 42
+35 9 11 43
+36 19 11 44
+37 10 12 45
+38 11 12 46
+39 9 12 47
+40 24 13 14
+41 6 13 15
+42 6 13 16
+43 25 13 20
+44 9 14 48
+45 13 14 49
+46 26 14 50
+47 19 15 51
+48 9 15 52
+49 10 15 53
+50 18 16 54
+51 13 16 55
+52 12 16 56
+53 27 17 57
+54 27 18 57
+55 28 19 57
+56 29 20 57
+
+Angles
+
+1 8 2 1 3
+2 9 2 1 4
+3 10 2 1 17
+4 11 3 1 4
+5 12 3 1 17
+6 13 4 1 17
+7 14 1 2 21
+8 15 1 2 22
+9 16 1 2 23
+10 17 21 2 22
+11 18 21 2 23
+12 19 22 2 23
+13 20 1 3 24
+14 21 1 3 25
+15 22 1 3 26
+16 18 24 3 25
+17 23 24 3 26
+18 18 25 3 26
+19 14 1 4 27
+20 24 1 4 28
+21 25 1 4 29
+22 26 27 4 28
+23 27 27 4 29
+24 28 28 4 29
+25 9 6 5 7
+26 29 6 5 8
+27 30 6 5 18
+28 31 7 5 8
+29 32 7 5 18
+30 33 8 5 18
+31 34 5 6 30
+32 35 5 6 31
+33 36 5 6 32
+34 37 30 6 31
+35 19 30 6 32
+36 19 31 6 32
+37 38 5 7 33
+38 39 5 7 34
+39 40 5 7 35
+40 41 33 7 34
+41 37 33 7 35
+42 23 34 7 35
+43 25 5 8 36
+44 21 5 8 37
+45 42 5 8 38
+46 17 36 8 37
+47 43 36 8 38
+48 26 37 8 38
+49 9 10 9 11
+50 31 10 9 12
+51 44 10 9 19
+52 8 11 9 12
+53 45 11 9 19
+54 46 12 9 19
+55 47 9 10 39
+56 48 9 10 40
+57 35 9 10 41
+58 19 39 10 40
+59 26 39 10 41
+60 17 40 10 41
+61 49 9 11 42
+62 21 9 11 43
+63 25 9 11 44
+64 23 42 11 43
+65 50 42 11 44
+66 17 43 11 44
+67 51 9 12 45
+68 52 9 12 46
+69 25 9 12 47
+70 18 45 12 46
+71 26 45 12 47
+72 18 46 12 47
+73 11 14 13 15
+74 31 14 13 16
+75 53 14 13 20
+76 54 15 13 16
+77 10 15 13 20
+78 55 16 13 20
+79 40 13 14 48
+80 56 13 14 49
+81 57 13 14 50
+82 27 48 14 49
+83 23 48 14 50
+84 58 49 14 50
+85 59 13 15 51
+86 14 13 15 52
+87 48 13 15 53
+88 18 51 15 52
+89 19 51 15 53
+90 17 52 15 53
+91 35 13 16 54
+92 14 13 16 55
+93 34 13 16 56
+94 19 54 16 55
+95 37 54 16 56
+96 19 55 16 56
+97 60 1 17 57
+98 61 5 18 57
+99 62 9 19 57
+100 63 13 20 57
+101 64 17 57 18
+102 65 17 57 19
+103 66 17 57 20
+104 67 18 57 19
+105 68 18 57 20
+106 69 19 57 20

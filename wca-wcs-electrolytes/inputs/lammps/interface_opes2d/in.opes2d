@@ -1,0 +1,196 @@
+variable        wid    world 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+variable        LISEL  world 4513 4509 8179 4516 8181 8180 4509 4513 4509 8179 4509 4513 4509 8179 4516 4513
+variable        FACE   world bottom top bottom top bottom top top bottom top bottom top bottom top bottom top bottom
+variable        FRAME  world 180000 END 160000 100000 30000 END 160000 100000 150000 150000 130000 60000 90000 60000 40000 110000
+variable        RDUMP  world 1 0 1 1 1 0 1 1 1 1 1 1 1 1 1 1
+variable        ARM   index geometric
+variable        CONT  index UNSET
+variable        SEG   index UNSET
+variable        DATA0 index equil_final.data
+variable        TRAJ0 index traj.lammpstrj
+variable        RST   index NONE
+variable        NSEG  index 1000000
+variable        NCKPT index 100000
+variable        NOUT  index 2000
+variable        NRDF  index 50000
+variable        NPROF index 20000
+variable        PECORR index 0
+variable        GSW   index 0.50
+variable        LIWALL_R0 index 2.4
+variable        TDUMP index 5.0
+variable        TDUMP0 index ${TDUMP}
+variable        TRESD index 0.5
+variable        NVEL  index 2000
+variable        MALL  index 65093.9508432
+variable        T     index 293.0
+variable        P     index 90.0
+variable        RHO_ELEC index 0.8768
+variable        QTOL  index 1.0e-5
+variable        RFLOOR index 3.0
+variable        RM    index 60
+variable        REVERY index 10
+variable        XC    equal 19.0
+variable        YC    equal 19.0
+variable        ZANC  equal 5.265
+variable        HALF  equal 5.265
+if "${ARM} != geometric" then "print 'OPES2D_BAD_ARM ${ARM}'" "quit 3"
+if "${CONT} != 0 && ${CONT} != 1 && ${CONT} != 2" then "print 'OPES2D_BAD_CONT ${CONT}'" "quit 3"
+variable        SEED  equal 2.0261001e7+1000*${SEG}+${wid}
+variable        STEP0 equal ${NSEG}*(${SEG}-1)
+variable        NEND  equal ${NSEG}*${SEG}
+variable        SUF   string w${wid}.s${SEG}
+units           metal
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+if "${CONT} == 0" then "read_data ${DATA0}" elif "${CONT} == 1" "read_data w${wid}.ckpt.data" else "read_restart ${RST}"
+pair_style      hybrid/overlay eam/fs coul/long 12.0 coul/shield/intra 12.0 all gaussian morse 12.0 buck 12.0 table linear 8000
+special_bonds   lj 0.0 0.0 0.5 coul 1.0e-8 1.0e-8 1.0
+print           "OPES2D_START w${wid} seg ${SEG} cont ${CONT} natoms $(atoms) step $(step) li ${LISEL} face ${FACE} frame ${FRAME}"
+if "$(atoms) != 8185" then "print 'OPES2D_BAD_NATOMS'" "quit 4"
+include         ../../../forcefield/merged/paircoeff_interface_cell_${ARM}.inc
+pair_coeff      * * coul/long
+pair_coeff      * * eam/fs ../../../forcefield/interface/Li_v2.eam.fs NULL NULL NULL NULL NULL NULL NULL NULL NULL NULL NULL Li
+pair_coeff      11 12 table ../../../forcefield/interface/li_phi.table LI_PHI
+pair_coeff      11 12 buck $(0.1*exp(v_LIWALL_R0/0.2)) 0.2 0.0
+mass            11 6.941
+mass            12 6.941
+variable        mall    equal mass(all)
+print           "OPES2D_MASS mass_all $(v_mall:%.6f) expected ${MALL}"
+if "$(abs(v_mall-v_MALL)) > 1.0e-5" then "print 'OPES2D_BAD_MASS'" "quit 4"
+if "${CONT} == 0 && ${RDUMP} == 1" then "read_dump ${TRAJ0} ${FRAME} x y z vx vy vz ix iy iz box yes replace yes"
+if "${CONT} != 2" then "reset_timestep ${STEP0}"
+print           "OPES2D_STEP0 w${wid} step $(step) expected ${STEP0} lz $(lz:%.6f)"
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30
+kspace_modify   mesh 24 24 60
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+group           qall   type 1:12
+group           elyte  type 1:11
+group           elec   type 12
+group           liplus type 11
+group           fmF    type 1
+group           fmH    type 3:5
+group           anchor id 364:484
+group           plane0 id 1:121
+group           plane1 id 122:242
+group           plane5 id 606:726
+group           plane6 id 727:847
+group           face0  union plane0 plane1
+group           face6  union plane5 plane6
+group           mobile subtract all anchor
+group           mslab  subtract elec anchor
+fix             q qall qeq/sam 1 0.0 12.0 ${QTOL} ../../../forcefield/merged/interface_cell.param
+fix_modify      q shield gaussian
+fix_modify      q aspc off
+fix_modify      q recip_probes 16
+fix_modify      q energy yes
+fix_modify      q eselfref qs
+fix_modify      q ridge eig ${RFLOOR} ${RM} ${REVERY}
+fix_modify      q electrode elec 0.0
+fix_modify      q etaloc diagonal on
+fix_modify      q etaloc metalmask on
+fix_modify      q etaloc molcharge on
+fix_modify      q etaloc envexclude electrode
+fix_modify      q etaloc taper interp
+fix_modify      q etaloc edges distance
+fix_modify      q etaloc force on
+fix_modify      q gself on width ${GSW} types 12
+fix             anc anchor setforce 0.0 0.0 0.0
+timestep        0.0005
+fix             pl all plumed plumedfile plumed.${SUF}.dat outfile plumed.${SUF}.out
+compute         cq  all   property/atom q
+compute         qmx all   reduce max c_cq
+compute         qmn all   reduce min c_cq
+compute         qel elec  reduce sum c_cq
+compute         qly elyte reduce sum c_cq
+compute         qp0 plane0 reduce sum c_cq
+compute         qp6 plane6 reduce sum c_cq
+compute         qf0 face0  reduce sum c_cq
+compute         qf6 face6  reduce sum c_cq
+variable        qsq    atom q*q
+compute         q2el   elec reduce sum v_qsq
+variable        eself  equal 14.399645/(${GSW}*sqrt(PI))
+variable        pecorr equal pe+${PECORR}*0.5*v_eself*c_q2el
+compute         rdfLL all rdf 120 11 12 cutoff 6.0
+variable        rr   vector c_rdfLL[1]
+variable        cn   vector c_rdfLL[3]
+variable        ww   vector (v_cn>0)*v_rr+(v_cn<=0)*99.0
+variable        dmin equal  min(v_ww)
+compute         cF    fmF coord/atom cutoff 2.6 12
+variable        adsF  atom c_cF>0
+compute         nFads fmF reduce sum v_adsF
+compute         cLi   liplus coord/atom cutoff 3.3 12
+compute         nLiLi liplus reduce sum c_cLi
+fix             diag all ave/time ${NOUT} 1 ${NOUT} v_dmin c_nFads c_nLiLi c_qel c_qly
+variable        z6   equal xcm(plane6,z)
+variable        z0   equal xcm(plane0,z)
+variable        hTop atom (z-v_z6)-lz*round((z-v_z6)/lz)
+variable        hBot atom (v_z0-z)-lz*round((v_z0-z)/lz)
+variable        fT1  atom (v_hTop<1.0)*(v_hTop>-v_HALF)
+variable        fT3  atom (v_hTop<3.0)*(v_hTop>-v_HALF)
+variable        fB1  atom (v_hBot<1.0)*(v_hBot>-v_HALF)
+variable        fB3  atom (v_hBot<3.0)*(v_hBot>-v_HALF)
+compute         nFT1 fmF reduce sum v_fT1
+compute         nFT3 fmF reduce sum v_fT3
+compute         nFB1 fmF reduce sum v_fB1
+compute         nFB3 fmF reduce sum v_fB3
+compute         cH   fmH coord/atom cutoff 2.2 12
+compute         nHc  fmH reduce sum c_cH
+variable        zm1  equal v_ZANC+0.5*lz-8.0
+variable        zm2  equal v_ZANC+0.5*lz+8.0
+region          mid  block INF INF INF INF v_zm1 v_zm2 units box
+variable        rhomid  equal mass(elyte,mid)/(lx*ly*16.0)*1.66053906660
+variable        rhofilm equal mass(elyte)/(lx*ly*(lz-7*1.755))*1.66053906660
+variable        zanc    equal xcm(anchor,z)
+variable        zslab   equal xcm(elec,z)
+fix             diag2 all ave/time ${NOUT} 1 ${NOUT} c_nFT1 c_nFT3 c_nFB1 c_nFB3 c_nHc c_qp0 c_qp6 c_qf0 c_qf6
+compute         tmob mobile temp
+thermo_style    custom step temp press pzz density vol pe etotal econserve c_qmx c_qmn c_qel f_pl
+thermo_modify   temp tmob flush yes
+thermo          ${NOUT}
+print           "OPES2D_VCM before elyte $(vcm(elyte,x):%.9e) $(vcm(elyte,y):%.9e) $(vcm(elyte,z):%.9e)"
+if "${CONT} == 0" then "velocity elyte zero linear"
+print           "OPES2D_VCM after  elyte $(vcm(elyte,x):%.9e) $(vcm(elyte,y):%.9e) $(vcm(elyte,z):%.9e)"
+variable        hTli  equal v_hTop[${LISEL}]
+variable        hBli  equal v_hBot[${LISEL}]
+if "${CONT} == 0" then "run 0 post no" "jump SELF opes2d_pre_full"
+print           "OPES2D_PRE w${wid} seg ${SEG} li ${LISEL} face ${FACE} frame ${FRAME} cont ${CONT} step $(step) lz $(lz:%.6f) mass_all $(v_mall:%.6f) vcm_elyte $(vcm(elyte,x):%.3e) $(vcm(elyte,y):%.3e) $(vcm(elyte,z):%.3e) (no pre-run at CONT >= 1, #76c)"
+jump SELF opes2d_pre_done
+label opes2d_pre_full
+print           "OPES2D_PRE w${wid} seg ${SEG} li ${LISEL} face ${FACE} frame ${FRAME} step $(step) pe $(pe:%.10f) T $(temp:%.4f) q_elec $(c_qel:%.3e) q_elyte $(c_qly:%.9e) lz $(lz:%.6f) rho_mid $(v_rhomid:%.6f) mass_all $(v_mall:%.6f) vcm_elyte $(vcm(elyte,x):%.3e) $(vcm(elyte,y):%.3e) $(vcm(elyte,z):%.3e) hTop_li $(v_hTli:%.6f) hBot_li $(v_hBli:%.6f) f_pl $(f_pl:%.8f)"
+label opes2d_pre_done
+print           "OPES2D_SCHEDULE nsteps ${NSEG} step0 ${STEP0} dt 0.0005 nout ${NOUT} tdump ${TDUMP} tresd ${TRESD} nvel ${NVEL} nrdf ${NRDF} nprof ${NPROF} nckpt ${NCKPT} seed ${SEED}"
+fix             ser all print ${NOUT} "$(step) $(temp) $(press) $(density) $(vol) $(pe) $(pzz) $(f_diag[1]) $(f_diag[2]) $(f_diag[3]) $(f_diag[4]) $(f_diag[5]) $(v_pecorr) $(lz) $(v_rhomid) $(v_rhofilm) $(f_diag2[1]) $(f_diag2[2]) $(f_diag2[3]) $(f_diag2[4]) $(f_diag2[5]) $(f_diag2[6]) $(f_diag2[7]) $(f_diag2[8]) $(f_diag2[9]) $(v_z0) $(v_z6) $(v_zanc) $(v_zslab) $(v_mall) $(c_qmx) $(c_qmn) $(vcm(elyte,x)) $(vcm(elyte,y))" &
+                file equil_series.${SUF}.txt screen no &
+                title "# step temp press density volume pe pzz dmin_LiPlus_Li0(A) nF_FM_within_2.6A_of_Li0 nLiPlus_Li0_pairs_within_3.3A q_elec q_elyte pe_corr(gself) lz rho_mid rho_film_conv nF_top_h<1 nF_top_h<3 nF_bot_h<1 nF_bot_h<3 nHLi0_pairs<2.2 q_plane0 q_plane6 q_planes01 q_planes56 z_plane0 z_plane6 z_anchor z_slabcom mass_all qmax qmin vcm_elyte_x vcm_elyte_y"
+dump            traj all custom 2000 traj.${SUF}.lammpstrj id mol type q x y z ix iy iz vx vy vz
+dump_modify     traj every/time ${TDUMP0} first yes time yes sort id format float %.7g
+group           hfl2 union fmH fmF elec liplus
+variable        vsel atom (type==12)*((id<=242)+(id>=606))+(type==11)+(type<=5)*(v_fT3+v_fB3)
+dump            resd hfl2 custom 1000 resid.${SUF}.lammpstrj id type x y z iz
+dump_modify     resd every/time ${TRESD} first yes time yes sort id format float %.7g thresh v_vsel > 0.5
+dump            vel all custom ${NVEL} vel.${SUF}.lammpstrj id mol type vx vy vz
+dump_modify     vel first yes sort id format float %.10g
+dump_modify     traj every/time ${TDUMP}
+variable        vmid atom (type==1)+(type==11)*rmask(mid)
+group           gCN dynamic all var vmid every 10
+compute         rdfmid gCN rdf 400 11 1
+fix             rdfo all ave/time 10 $(v_NRDF/10) ${NRDF} c_rdfmid[*] file rdf_mid_${ARM}.${SUF}.txt mode vector
+compute         chE elyte chunk/atom bin/1d z lower $(1.0/184.0) units reduced
+compute         chA all   chunk/atom bin/1d z lower $(1.0/184.0) units reduced
+variable        qat atom q
+fix             profm elyte ave/chunk 10 $(v_NPROF/10) ${NPROF} chE density/mass ave one file prof_mass_${ARM}.${SUF}.txt
+fix             profq all   ave/chunk 10 $(v_NPROF/10) ${NPROF} chA v_qat ave one file prof_q_${ARM}.${SUF}.txt
+restart         ${NCKPT} w${wid}.ckpt.a.restart w${wid}.ckpt.b.restart
+fix             int3 elyte npt temp ${T} ${T} 0.1 z ${P} ${P} 1.0 dilate elyte fixedpoint ${XC} ${YC} ${ZANC}
+fix_modify      int3  temp tmob
+fix             int3m mslab nve
+fix             lgv3  mslab langevin ${T} ${T} 0.1 ${SEED}
+if "${CONT} == 2" then "run ${NEND} upto" else "run ${NSEG}"
+print           "OPES2D_DONE w${wid} seg ${SEG} arm ${ARM} step $(step) T $(temp) density $(density) vol $(vol) lz $(lz) pzz $(pzz) q_elec $(f_diag[4]) rho_mid $(v_rhomid) rho_film $(v_rhofilm) dmin_LiLi0 $(f_diag[1]) nFads $(f_diag[2]) nF_top_h<1 $(f_diag2[1]) nF_bot_h<1 $(f_diag2[3]) nHc $(f_diag2[5])"
+write_data      final.${SUF}.data
+write_data      w${wid}.ckpt.data
+print           "OPES2D_FINAL w${wid} seg ${SEG} step $(step) mass_all $(v_mall:%.6f)"

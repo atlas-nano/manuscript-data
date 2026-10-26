@@ -1,0 +1,7 @@
+salt,solvent,dG_diss_kcal_per_mol,BE_n1_per_solvent_kcal_per_mol,n_cells,n_paired,dG_mix_B_kcal_per_mol,bootstrap_sd,dG_mix_label,marker
+LiTPFA,FM,146.41,-26.1,8,0,-2.955,6.65,≈ 0,hollow circle (|ΔG_mix| ≤ 2σ)
+LiPF6,FM,163.54,-26.1,8,8,11.4,3.41,(omitted: contact-paired majority),cross (ΔG_mix>0)
+LiBF4,FM,173.06,-26.1,8,8,20.98,4.77,(omitted: contact-paired majority),cross (ΔG_mix>0)
+LiTPFA,ACN,146.41,-43.2,4,0,-22.0,1.72,−22,circle (ΔG_mix<0)
+LiPF6,ACN,163.54,-43.2,8,1,-12.44,1.03,−12,circle (ΔG_mix<0)
+LiBF4,ACN,173.06,-43.2,8,3,10.685,1.41,+11,cross (ΔG_mix>0)

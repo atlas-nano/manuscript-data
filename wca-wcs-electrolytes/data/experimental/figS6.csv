@@ -1,0 +1,4 @@
+panel,nucleus,species,fitted_velocity_um_per_s,uncertainty_um_per_s
+A,1H,solvent (ACN),-4.9,0.8
+B,7Li,Li+,25.2,1.7
+C,19F,TPFA-,-24.6,1.4

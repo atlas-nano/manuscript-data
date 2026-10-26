@@ -1,0 +1,11 @@
+structure_type,species,vdW_volume_A3
+Isolated anion,BF₄⁻,51.36
+Isolated anion,PF₆⁻,73.4
+Isolated anion,FSI⁻,101.67
+Isolated anion,TFSI⁻,154.82
+Isolated anion,TPFA⁻,502.08
+Li⁺–solvent shell,Li⁺ – ACN,238.78
+Li⁺–solvent shell,Li⁺ – DME,202.27
+Li⁺–solvent shell,Li⁺ – Me₂O,221.34
+Li⁺–solvent shell,Li⁺ – DEE,272.34
+Li⁺–solvent shell,Li⁺ – FM,139.63

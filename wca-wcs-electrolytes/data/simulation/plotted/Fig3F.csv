@@ -1,0 +1,7 @@
+solvent,salt,n_cells,n_paired,U_LA_median,dG_diss,minus_TdS_ideal,dG_solv_B,dG_mix_B,dG_mix_B_bootstrap_sd,closure_B,plotted
+FM,LiTPFA,8,0,-5.95,146.41,-3.07,-146.3,-2.955,6.65,-0.005,full stack + net
+FM,LiPF6,8,8,-101.4,163.54,-3.07,-149.05,11.4,3.413,0.02,dG_diss only (contact pair in 8/8 cells)
+FM,LiBF4,8,8,-122.4,173.06,-3.07,-149.0,20.98,4.77,0.01,dG_diss only (contact pair in 8/8 cells)
+ACN,LiTPFA,4,0,3.2,146.41,-3.12,-165.3,-22.0,1.716,-0.01,full stack + net
+ACN,LiPF6,8,1,-2.3,163.54,-3.12,-172.85,-12.44,1.033,0.01,full stack + net
+ACN,LiBF4,8,3,-4.05,173.06,-3.12,-159.25,10.685,1.412,0.005,full stack + net

@@ -1,0 +1,56 @@
+variable        NRELAX index 20000
+variable        NHEAT  index 40000
+variable        NEQ    index 500000
+variable        NRUN   index 8000000
+variable        NOUT   index 2000
+variable        NREST  index 1000000
+units           metal
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  opls
+pair_style      hybrid/overlay coul/long 12.0 coul/shield/intra 12.0 all gaussian morse 12.0
+read_data       acn_neat.data
+special_bonds   lj/coul 1.0e-8 1.0e-8 0.5
+include         paircoeff_acn_neat.inc
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30
+kspace_modify   mesh 16 16 16
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+group           qall type 1 2 3 4 5 6
+fix             q qall qeq/sam 1 0.0 12.0 1.0e-5 acn_neat.param
+fix_modify      q shield gaussian
+fix_modify      q aspc 2
+fix_modify      q rnd 5.0
+compute         cq  all property/atom q
+compute         qmx all reduce max c_cq
+compute         qmn all reduce min c_cq
+thermo_style    custom step temp pe f_q c_qmx c_qmn press density
+thermo          ${NOUT}
+velocity        all create 5.0 12345 mom yes rot yes dist gaussian
+timestep        0.0002
+fix             intg all nve/limit 0.005
+fix             lgv  all langevin 5.0 5.0 0.02 12345
+run             ${NRELAX}
+unfix           lgv
+unfix           intg
+timestep        0.0005
+fix             intg all nve
+fix             lgv  all langevin 5.0 293.15 0.1 12345
+run             ${NHEAT}
+unfix           lgv
+unfix           intg
+fix             intg all npt temp 293.15 293.15 0.1 iso 1.0 1.0 1.0
+run             ${NEQ}
+reset_timestep  0
+variable        dn  equal density
+variable        vol equal vol
+fix             dser all print 2000 "$(step) $(temp) $(press) $(density) $(vol)" file dens_long.txt &
+                screen no title "# step temp press density volume"
+restart         ${NREST} acn.restart.*
+fix             dave all ave/time 10 1 10 v_dn ave running
+run             ${NRUN}
+print           "DENSITY_DONE ACN rho_run_avg $(f_dave) rho_final $(density) T $(temp) P_inst_bar $(press) P_target_bar 1.0 steps ${NRUN}"
+write_data      acn_final.data

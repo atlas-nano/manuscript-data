@@ -1,0 +1,49 @@
+units           metal
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+pair_style      hybrid/overlay coul/long 12.0 coul/shield/intra 12.0 all gaussian morse 12.0 buck 12.0
+read_data       litpfa.data
+special_bonds   lj 0.0 0.0 0.5 coul 1.0e-8 1.0e-8 1.0
+include         ../../../forcefield/merged/paircoeff_litpfa_fm.inc
+pair_coeff      * * coul/long
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+group           qall type 1 2 3 4 5 6 7 8 9 10 11
+group           ions type 6:11
+fix             q qall qeq/sam 1 0.0 12.0 1.0e-5 ../../../forcefield/merged/litpfa_fm.param
+fix_modify      q shield gaussian
+fix_modify      q aspc 2
+fix_modify      q recip_probes 16
+compute         cq all property/atom q
+compute         qmx all reduce max c_cq
+compute         qmn all reduce min c_cq
+thermo_style    custom step temp press density c_qmx c_qmn
+thermo          2000
+velocity        all create 5.0 20013 mom yes rot yes dist gaussian
+timestep        0.0002
+fix             intg all nve/limit 0.005
+fix             lgv  all langevin 5.0 5.0 0.02 20013
+run             20000
+unfix           lgv
+unfix           intg
+timestep        0.0005
+fix             intg all nve
+fix             lgv all langevin 5.0 293.0 0.1 20013
+run             40000
+unfix           lgv
+unfix           intg
+fix             intg all npt temp 293.0 293.0 0.1 iso 90.0 90.0 1.0
+run             100000
+unfix           intg
+reset_timestep  0
+fix             intg all nvt temp 293.0 293.0 0.1
+dump            d ions custom 2000 ions_litpfa.lammpstrj id mol type xu yu zu
+dump_modify     d sort id
+restart         500000 litpfa.restart.*
+run             3400000
+print           "RUN_DONE litpfa rho $(density) qmax $(c_qmx) qmin $(c_qmn)"
+write_data      litpfa_final.data nocoeff

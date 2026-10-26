@@ -1,0 +1,4 @@
+panel,reference_line,reference_binding_energy_eV,common_shift_applied_eV,fitted_LiF_binding_energy_eV,fitted_C-C_C-H_binding_energy_eV
+A,F 1s LiF,684.79,-2.415471,684.79394,284.4478
+B,F 1s LiF,684.79,-3.371209,684.78674,284.2988
+C,F 1s LiF,684.79,-2.12512,684.77463,283.8831

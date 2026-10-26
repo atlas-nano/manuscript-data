@@ -1,0 +1,61 @@
+units           metal
+atom_style      full
+boundary        p p p
+bond_style      harmonic
+angle_style     harmonic
+pair_style      hybrid/overlay coul/long 12.0 coul/shield/intra 12.0 all gaussian morse 12.0 buck 12.0
+read_data       fm_neat.data
+special_bonds   lj 0.0 0.0 0.5 coul 1.0e-8 1.0e-8 1.0
+include         ../../../../forcefield/merged/paircoeff_litpfa_fm_xpt.inc
+pair_coeff      * * coul/long
+kspace_style    pppm/samqeq 1.0e-5
+kspace_modify   gewald 0.30
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+group           qall type 1 2 3 4 5 6 7 8 9 10 11
+group           ions type 6:11
+fix             q qall qeq/sam 1 0.0 12.0 1.0e-5 ../../../../forcefield/merged/litpfa_fm.param
+fix_modify      q shield gaussian
+fix_modify      q aspc 2
+fix_modify      q recip_probes 16
+fix_modify      q energy yes
+fix_modify      q eselfref qs
+fix             pf all property/atom i_pin
+variable        pinv atom mol
+set             atom * i_pin v_pinv
+group           anionall type 6:10
+set             group anionall mol 642
+fix_modify      q pinfrag pin
+compute         cq all property/atom q
+compute         qmx all reduce max c_cq
+compute         qmn all reduce min c_cq
+thermo_style    custom step temp press density c_qmx c_qmn f_q
+thermo          2000
+group           solv  type 1:5
+variable        Vtarget equal 56072.6493
+minimize        1.0e-4 1.0e-6 1000 10000
+reset_timestep  0
+velocity        all create 1.0 24601 mom yes rot yes dist gaussian
+timestep        0.0002
+fix             intg all nve/limit 0.005
+fix             lgv all langevin 1.0 1.0 0.02 24601
+run             20000
+unfix           lgv
+unfix           intg
+timestep        0.0005
+fix             intg all nve
+fix             lgv all langevin 1.0 293.0 0.1 24601
+run             40000
+unfix           lgv
+unfix           intg
+variable        lscale equal (v_Vtarget/vol)^(1.0/3.0)
+fix             defm all deform 1 x scale ${lscale} y scale ${lscale} z scale ${lscale} remap x
+fix             intg all nvt temp 293.0 293.0 0.1
+run             10000
+unfix           defm
+run             40000
+print           "NEAT_VOL_CHECK vol=$(vol) target=$(v_Vtarget) dev=$((vol-v_Vtarget)/v_Vtarget*100)%"
+reset_timestep  0
+fix  xneat solv  xpt 4 1024 neat_litpfa_fm_k1 classical allow_mixed_molecules normalize molecule symmetry C3v mode 3PT refinement memarea show_split
+run             300000
+print "NEAT_DONE litpfa_fm_k1 nsolv=$(count(solv)/5) vol=$(vol)"
