@@ -2,7 +2,7 @@
 
 Data and scripts that reproduce the figures of G. Raghavendran, A. Liu, E. S. Yang, K. J. Anderton, V. V. Singh,
 A. Larson, K. Ryu, K. J. Griffith, J. S. Figueroa, Y. S. Meng and T. A. Pascal, *Weakly coordinating anions and
-solvents break the conductivity–transference–solvation tradeoff*, Science (submitted). The deposit also carries the
+solvents break the conductivity–transference–solvation tradeoff*, Science (submitted). Archived at Zenodo: [10.5281/zenodo.23676154](https://doi.org/10.5281/zenodo.23676154). The deposit also carries the
 scripts that turn simulation output into the plotted quantities, one example input for each type of calculation,
 and the force fields exactly as the simulations used them.
 
