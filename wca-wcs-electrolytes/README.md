@@ -1,8 +1,8 @@
 # Weakly coordinating anions and solvents — figure data, processing scripts, inputs and force fields
 
-Data and scripts that reproduce the figures of G. Raghavendran, A. Liu, E. S. Yang, K. J. Anderton, V. V. Singh,
+Data and scripts that reproduce the figures of A. Liu, G. Raghavendran, E. S. Yang, K. J. Anderton, V. V. Singh,
 A. Larson, K. Ryu, K. J. Griffith, J. S. Figueroa, Y. S. Meng and T. A. Pascal, *Weakly coordinating anions and
-solvents break the conductivity–transference–solvation tradeoff*, Science (submitted). Archived at Zenodo: [10.5281/zenodo.23676154](https://doi.org/10.5281/zenodo.23676154). The deposit also carries the
+solvents break the conductivity–transference–solvation tradeoff*, Science (submitted). Archived at Zenodo: [10.5281/zenodo.23741204](https://doi.org/10.5281/zenodo.23741204) (version 1.0.2). The deposit also carries the
 scripts that turn simulation output into the plotted quantities, one example input for each type of calculation,
 and the force fields exactly as the simulations used them.
 
@@ -179,6 +179,14 @@ The Li embedded-atom potential of the interface cell, `Li_v2.eam.fs` (A. Nichol 
 MD5 checksum of `Li_v2.eam.fs`: `fa7cc2b5c0bc41e6ee0b48b09e41464b`
 
 Place it at `forcefield/interface/Li_v2.eam.fs` before running `inputs/lammps/interface_opes2d/`. The deck also reads the table `forcefield/interface/li_phi.table`, which is not included. It holds the pair term of the same potential, and `python3 scripts/li_phi_table.py forcefield/interface/Li_v2.eam.fs > forcefield/interface/li_phi.table` regenerates it from that file.
+
+## Versions
+
+- **1.0.2**: Fig. 1B plots no LiBF4/DEE conductivity. LiBF4 is insoluble in DEE (table S2), so `data/experimental/Fig1B.csv`
+  and `data/data_S1.xlsx` carry no row for it, and Fig. 1 is re-rendered from them. No other value changes. Author order:
+  A. Liu first, G. Raghavendran second.
+- **1.0.1**: dielectric constants follow table S1 (Figs. 1B, 1C and 2C).
+- **1.0.0**: first release.
 
 ## Licence
 
